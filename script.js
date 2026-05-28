@@ -1,15 +1,11 @@
-const supabaseUrl = "https://dknksfcesarrvyfufdti.supabase.co";
-const supabaseKey = "YOUR_ANON_KEY";
-
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabase = window.supabase.createClient(
+  "https://dknksfcesarrvyfufdti.supabase.co",
+  "YOUR_ANON_KEY"
+);
 
 let currentUser = JSON.parse(localStorage.getItem("tngUser"));
 
-if (!currentUser && window.location.pathname.includes("dashboard")) {
-  window.location.href = "login.html";
-}
-
-/* ================= LOAD USER ================= */
+/* LOAD USER */
 async function loadUser() {
 
   const { data } = await supabase
@@ -23,39 +19,11 @@ async function loadUser() {
   document.getElementById("userPhone").innerText = data.phone;
   document.getElementById("userBalance").innerText = data.balance;
   document.getElementById("userReferral").innerText = data.referral_code;
-
-  document.getElementById("referralLink").value =
-    window.location.origin + "/register.html?ref=" + data.referral_code;
-
-  loadVIP();
 }
 
 loadUser();
 
-/* ================= VIP INFO ================= */
-async function loadVIP() {
-
-  const { data: vip } = await supabase
-    .from("user_vip")
-    .select("*")
-    .eq("user_id", currentUser.id)
-    .eq("status", "active")
-    .single();
-
-  if (!vip) return;
-
-  document.getElementById("vipStatus").innerText = vip.status;
-  document.getElementById("vipExpiry").innerText = vip.expires_at;
-}
-
-/* ================= COPY ================= */
-function copyReferralLink() {
-  const input = document.getElementById("referralLink");
-  input.select();
-  document.execCommand("copy");
-}
-
-/* ================= BUY VIP ================= */
+/* VIP BUY */
 async function buyVip(name, price) {
 
   const { data: user } = await supabase
@@ -64,7 +32,10 @@ async function buyVip(name, price) {
     .eq("id", currentUser.id)
     .single();
 
-  if (user.balance < price) return alert("No balance");
+  if (user.balance < price) {
+    alert("No balance");
+    return;
+  }
 
   await supabase
     .from("users")
@@ -86,57 +57,28 @@ async function buyVip(name, price) {
   loadUser();
 }
 
-/* ================= UPGRADE ================= */
-async function upgradeVip(name, newPrice) {
+/* DEPOSIT */
+async function submitDeposit() {
 
-  const { data: vip } = await supabase
-    .from("user_vip")
-    .select("*")
-    .eq("user_id", currentUser.id)
-    .single();
+  const amount = document.getElementById("depositAmount").value;
+  const tx = document.getElementById("transactionId").value;
 
-  const diff = newPrice - vip.price;
+  const { error } = await supabase
+    .from("deposits")
+    .insert([{
+      user_id: currentUser.id,
+      amount,
+      transaction_id: tx,
+      status: "pending"
+    }]);
 
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", currentUser.id)
-    .single();
-
-  if (user.balance < diff) return alert("No balance");
-
-  await supabase
-    .from("users")
-    .update({ balance: user.balance - diff })
-    .eq("id", currentUser.id);
-
-  await supabase
-    .from("user_vip")
-    .update({
-      package_name: name,
-      price: newPrice
-    })
-    .eq("id", vip.id);
-
-  alert("Upgraded");
-  loadUser();
+  if (!error) alert("Deposit submitted");
 }
 
-/* ================= WITHDRAW ================= */
-function canWithdraw() {
-  const h = new Date().getHours();
-  return !(h < 5 || h > 23);
-}
-
+/* WITHDRAW */
 async function requestWithdrawal(amount) {
 
-  amount = parseFloat(amount);
-
-  if (!canWithdraw()) return alert("Time restricted");
-
-  if (amount < 300) return alert("Min 300");
-
-  const fee = amount * 0.10;
+  const fee = amount * 0.1;
   const net = amount - fee;
 
   await supabase
@@ -149,80 +91,5 @@ async function requestWithdrawal(amount) {
       status: "pending"
     }]);
 
-  alert("Requested");
+  alert("Withdrawal requested");
 }
-
-/* ================= DAILY PROFIT ================= */
-async function generateDailyProfit() {
-
-  const { data: vip } = await supabase
-    .from("user_vip")
-    .select("*")
-    .eq("user_id", currentUser.id)
-    .eq("status", "active")
-    .single();
-
-  if (!vip) return;
-
-  // EXPIRY CHECK
-  const now = new Date();
-  const exp = new Date(vip.expires_at);
-
-  if (now > exp) {
-    await supabase
-      .from("user_vip")
-      .update({ status: "expired" })
-      .eq("id", vip.id);
-    return;
-  }
-
-  const last = new Date(vip.last_profit_time);
-  const hours = (now - last) / 3600000;
-
-  if (hours < 24) return;
-
-  let rate = 0;
-
-  switch (vip.price) {
-    case 1500: rate = 0.05; break;
-    case 3000: rate = 0.06; break;
-    case 6000: rate = 0.07; break;
-    case 12000: rate = 0.08; break;
-    case 24000: rate = 0.09; break;
-    case 48000: rate = 0.10; break;
-    case 96000: rate = 0.11; break;
-  }
-
-  const profit = vip.price * rate;
-
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", currentUser.id)
-    .single();
-
-  await supabase
-    .from("users")
-    .update({ balance: user.balance + profit })
-    .eq("id", currentUser.id);
-
-  await supabase
-    .from("earnings")
-    .insert([{
-      user_id: currentUser.id,
-      amount: profit,
-      vip_level: vip.package_name
-    }]);
-
-  await supabase
-    .from("user_vip")
-    .update({ last_profit_time: new Date() })
-    .eq("id", vip.id);
-
-  loadUser();
-}
-
-/* AUTO RUN */
-setInterval(() => {
-  if (currentUser) generateDailyProfit();
-}, 60000);

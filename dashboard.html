@@ -41,10 +41,10 @@
 
     <p>Minimum: <b>300 ETB</b></p>
     <p>Fee: <b>10%</b></p>
-    <p>Time: <b>5 AM - 11 PM (Daily)</b></p>
+    <p>Time: <b>5 AM - 11 PM</b></p>
 
     <p style="color:orange;">
-      ⚠️ VIP membership required to withdraw
+      ⚠️ VIP membership required for withdrawal
     </p>
 
   </div>
@@ -56,13 +56,47 @@
 
     <div class="vip-grid">
 
-      <div class="vip-card">VIP 1 - 1500 ETB - 5%</div>
-      <div class="vip-card">VIP 2 - 3000 ETB - 6%</div>
-      <div class="vip-card">VIP 3 - 6000 ETB - 7%</div>
-      <div class="vip-card">VIP 4 - 12000 ETB - 8%</div>
-      <div class="vip-card">VIP 5 - 24000 ETB - 9%</div>
-      <div class="vip-card">VIP 6 - 48000 ETB - 10%</div>
-      <div class="vip-card">VIP 7 - 96000 ETB - 11%</div>
+      <div class="vip-card">
+        <h3>VIP 1</h3>
+        <p>1500 ETB - 5%</p>
+        <button onclick="buyVip('VIP1',1500)">Buy</button>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 2</h3>
+        <p>3000 ETB - 6%</p>
+        <button onclick="buyVip('VIP2',3000)">Buy</button>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 3</h3>
+        <p>6000 ETB - 7%</p>
+        <button onclick="buyVip('VIP3',6000)">Buy</button>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 4</h3>
+        <p>12000 ETB - 8%</p>
+        <button onclick="buyVip('VIP4',12000)">Buy</button>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 5</h3>
+        <p>24000 ETB - 9%</p>
+        <button onclick="buyVip('VIP5',24000)">Buy</button>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 6</h3>
+        <p>48000 ETB - 10%</p>
+        <button onclick="buyVip('VIP6',48000)">Buy</button>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 7</h3>
+        <p>96000 ETB - 11%</p>
+        <button onclick="buyVip('VIP7',96000)">Buy</button>
+      </div>
 
       <div class="vip-card coming-soon">
         VIP 8 - 10 Coming Soon
@@ -81,6 +115,7 @@
 
 </div>
 
+<!-- SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="script.js"></script>
 

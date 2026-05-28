@@ -410,6 +410,21 @@ if (
 
   return;
 }
+
+/* =========================
+   MINIMUM WITHDRAWAL
+========================= */
+
+if (
+  withdrawAmount < 300
+) {
+
+  alert(
+    "Minimum withdrawal is 300 ETB"
+  );
+
+  return;
+}
     await supabase
       .from("withdrawals")
       .select("*")

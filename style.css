@@ -65,3 +65,20 @@ button{
   color:#22c55e;
   text-decoration:none;
 }
+
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  font-family: Arial;
+}
+
+input, button {
+  width: 100%;
+  margin: 5px 0;
+  padding: 10px;
+  font-size: 16px;
+}
+
+div {
+  max-width: 100%;
+}

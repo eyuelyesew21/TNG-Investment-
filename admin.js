@@ -34,6 +34,35 @@ async function checkAdmin() {
     return;
   }
 
+
+/* =========================
+   PASSWORD RESET (ADMIN)
+========================= */
+
+async function resetUserPassword(userId, newPassword) {
+
+  const { error } = await supabase
+    .from("users")
+    .update({
+      password: newPassword
+    })
+    .eq("id", userId);
+
+  if (error) {
+    alert("Reset failed");
+    return;
+  }
+
+  await supabase
+    .from("support_tickets")
+    .update({
+      status: "resolved"
+    })
+    .eq("user_id", userId)
+    .eq("type", "password_reset");
+
+  alert("Password reset successful");
+}
 async function loadUnreadTickets() {
 
   const { count } =

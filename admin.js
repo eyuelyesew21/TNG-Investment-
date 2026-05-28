@@ -692,3 +692,27 @@ resetAdminTimer();
 setInterval(() => {
   loadUnreadTickets();
 }, 5000);
+
+async function sendAdminReply(userId) {
+
+  const reply =
+    document.getElementById("replyText").value;
+
+  const { error } =
+    await supabase
+      .from("notifications")
+      .insert([
+        {
+          user_id: userId,
+          message: reply,
+          type: "admin_reply"
+        }
+      ]);
+
+  if (error) {
+    alert("Failed to send reply");
+    return;
+  }
+
+  alert("Reply sent to user");
+}

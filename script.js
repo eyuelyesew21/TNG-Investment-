@@ -878,3 +878,33 @@ function validateReferral(phone, referralCode) {
 
   return true;
 }
+
+async function loginUser() {
+
+  const phone =
+    document.getElementById("loginPhone").value;
+
+  const password =
+    document.getElementById("loginPassword").value;
+
+  const { data: user, error } =
+    await supabase
+      .from("users")
+      .select("*")
+      .eq("phone", phone)
+      .eq("password", password)
+      .single();
+
+  if (error || !user) {
+
+    alert("Invalid login details");
+
+    return;
+  }
+
+  localStorage.setItem("userId", user.id);
+
+  alert("Login successful");
+
+  location.href = "dashboard.html";
+}

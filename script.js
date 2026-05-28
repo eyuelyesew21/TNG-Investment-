@@ -10,16 +10,16 @@ if (!currentUser && window.location.pathname.includes("dashboard")) {
   window.location.href = "login.html";
 }
 
-/* ================= LOAD USER DATA ================= */
+/* ================= LOAD USER ================= */
 async function loadUser() {
 
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("users")
     .select("*")
     .eq("id", currentUser.id)
     .single();
 
-  if (error || !data) return;
+  if (!data) return;
 
   currentUser = data;
 
@@ -40,7 +40,7 @@ function copyReferralLink() {
   const input = document.getElementById("referralLink");
   input.select();
   document.execCommand("copy");
-  alert("Referral Link Copied!");
+  alert("Copied!");
 }
 
 /* ================= LOGOUT ================= */
@@ -58,14 +58,11 @@ async function buyVip(packageName, price) {
     .eq("id", currentUser.id)
     .single();
 
-  if (!user) return;
-
   if (user.balance < price) {
     alert("Not enough balance");
     return;
   }
 
-  // deduct balance
   await supabase
     .from("users")
     .update({
@@ -73,7 +70,6 @@ async function buyVip(packageName, price) {
     })
     .eq("id", currentUser.id);
 
-  // create VIP
   await supabase
     .from("user_vip")
     .insert([{
@@ -83,7 +79,7 @@ async function buyVip(packageName, price) {
       last_profit_time: new Date()
     }]);
 
-  alert("VIP Purchased Successfully!");
+  alert("VIP Activated!");
   loadUser();
 }
 
@@ -98,17 +94,14 @@ async function upgradeVip(newPackage, newPrice) {
     .single();
 
   if (!vip) {
-    alert("No active VIP found");
+    alert("No active VIP");
     return;
   }
 
-  const currentPrice = vip.price;
-
-  // difference calculation (IMPORTANT RULE)
-  const diff = newPrice - currentPrice;
+  const diff = newPrice - vip.price;
 
   if (diff <= 0) {
-    alert("You already have this or higher VIP");
+    alert("Already same or higher VIP");
     return;
   }
 
@@ -119,11 +112,10 @@ async function upgradeVip(newPackage, newPrice) {
     .single();
 
   if (user.balance < diff) {
-    alert("Not enough balance for upgrade");
+    alert("Not enough balance");
     return;
   }
 
-  // deduct only difference
   await supabase
     .from("users")
     .update({
@@ -131,7 +123,6 @@ async function upgradeVip(newPackage, newPrice) {
     })
     .eq("id", currentUser.id);
 
-  // update VIP
   await supabase
     .from("user_vip")
     .update({
@@ -140,9 +131,80 @@ async function upgradeVip(newPackage, newPrice) {
     })
     .eq("id", vip.id);
 
-  alert("VIP Upgraded Successfully!");
+  alert("VIP Upgraded!");
   loadUser();
 }
+
+/* ================= DAILY PROFIT ENGINE (6B CORE) ================= */
+async function generateDailyProfit() {
+
+  const { data: vip } = await supabase
+    .from("user_vip")
+    .select("*")
+    .eq("user_id", currentUser.id)
+    .eq("status", "active")
+    .single();
+
+  if (!vip) return;
+
+  const lastTime = new Date(vip.last_profit_time);
+  const now = new Date();
+
+  const diffHours = (now - lastTime) / (1000 * 60 * 60);
+
+  if (diffHours < 24) return;
+
+  let rate = 0;
+
+  switch (vip.price) {
+    case 1500: rate = 0.05; break;
+    case 3000: rate = 0.06; break;
+    case 6000: rate = 0.07; break;
+    case 12000: rate = 0.08; break;
+    case 24000: rate = 0.09; break;
+    case 48000: rate = 0.10; break;
+    case 96000: rate = 0.11; break;
+  }
+
+  const profit = vip.price * rate;
+
+  const { data: user } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", currentUser.id)
+    .single();
+
+  await supabase
+    .from("users")
+    .update({
+      balance: user.balance + profit
+    })
+    .eq("id", currentUser.id);
+
+  await supabase
+    .from("earnings")
+    .insert([{
+      user_id: currentUser.id,
+      amount: profit,
+      vip_level: vip.package_name
+    }]);
+
+  await supabase
+    .from("user_vip")
+    .update({
+      last_profit_time: new Date()
+    })
+    .eq("id", vip.id);
+
+  loadUser();
+}
+
+/* ================= AUTO RUN ENGINE ================= */
+setInterval(() => {
+  if (currentUser) {
+    generateDailyProfit();
+  }
+}, 60000);
 
 /* ================= WITHDRAWAL RULE CHECK ================= */
 function canWithdraw() {
@@ -150,24 +212,14 @@ function canWithdraw() {
   const hour = new Date().getHours();
 
   if (hour < 5 || hour > 23) {
-    alert("Withdrawal allowed only 5 AM - 11 PM");
+    alert("Withdrawal allowed 5 AM - 11 PM");
     return false;
   }
 
   if (currentUser.balance < 300) {
-    alert("Minimum withdrawal is 300 ETB");
+    alert("Minimum 300 ETB");
     return false;
   }
 
   return true;
-}
-
-/* ================= REFERRAL AUTO FILL ================= */
-const urlParams = new URLSearchParams(window.location.search);
-const ref = urlParams.get("ref");
-
-const refInput = document.getElementById("referralCode");
-
-if (ref && refInput) {
-  refInput.value = ref;
 }

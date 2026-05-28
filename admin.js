@@ -55,6 +55,8 @@ async function loadDashboard() {
   loadVipPlans();
 
 loadPasswordResets();
+
+loadAnalytics();
 }
 
 /* =========================

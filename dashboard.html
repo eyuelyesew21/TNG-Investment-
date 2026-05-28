@@ -1,77 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TNG Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header>
-  <h1>💎 TNG Dashboard</h1>
-</header>
+<h1>💎 TNG Dashboard</h1>
 
-<div class="container">
+<div class="card">
 
-  <!-- USER INFO -->
-  <div class="card">
-    <h2>👤 Account</h2>
+  <h2>👤 Profile</h2>
 
-    <p>Phone: <span id="userPhone"></span></p>
-    <p>Balance: <b>ETB <span id="userBalance"></span></b></p>
+  <p>Phone: <span id="userPhone"></span></p>
+  <p>Balance: <span id="userBalance"></span></p>
+  <p>Referral: <span id="userReferral"></span></p>
 
-    <p>Referral: <span id="userReferral"></span></p>
+</div>
 
-    <p>VIP Status: <span id="vipStatus">-</span></p>
-    <p>Expires: <span id="vipExpiry">-</span></p>
+<!-- COMPANY PROFILE -->
+<div class="card">
 
-    <input id="referralLink" readonly>
-    <button onclick="copyReferralLink()">Copy Link</button>
-  </div>
+  <h2>🏢 Company Profile</h2>
 
-  <!-- WITHDRAW RULE -->
-  <div class="card">
-    <h2>🏧 Withdrawal Rules</h2>
-    <p>Min: 300 ETB</p>
-    <p>Fee: 10%</p>
-    <p>Time: 5AM - 11PM</p>
-    <p style="color:red;">VIP Required</p>
-  </div>
+  <p>
+    Trust New Generation (TNG) በኢትዮጵያ ውስጥ የዲጂታል ኢኮኖሚ ለማሳደግ የተመሰረተ መድረክ ነው።
+  </p>
 
-  <!-- VIP -->
-  <div class="card">
-    <h2>💎 VIP Plans</h2>
+  <p>
+    TNG is a modern digital investment platform that provides income opportunities through VIP investment packages and referral systems.
+  </p>
 
-    <button onclick="buyVip('VIP1',1500)">VIP1</button>
-    <button onclick="buyVip('VIP2',3000)">VIP2</button>
-    <button onclick="buyVip('VIP3',6000)">VIP3</button>
-    <button onclick="buyVip('VIP4',12000)">VIP4</button>
-    <button onclick="buyVip('VIP5',24000)">VIP5</button>
-    <button onclick="buyVip('VIP6',48000)">VIP6</button>
-    <button onclick="buyVip('VIP7',96000)">VIP7</button>
-  </div>
+</div>
 
-  <!-- UPGRADE -->
-  <div class="card">
-    <h2>⬆ Upgrade</h2>
+<!-- VIP -->
+<div class="card">
+  <h2>💎 VIP Plans</h2>
 
-    <button onclick="upgradeVip('VIP2',3000)">VIP2</button>
-    <button onclick="upgradeVip('VIP3',6000)">VIP3</button>
-    <button onclick="upgradeVip('VIP4',12000)">VIP4</button>
-  </div>
+  <button onclick="buyVip('VIP1',1500)">VIP1</button>
+  <button onclick="buyVip('VIP2',3000)">VIP2</button>
+  <button onclick="buyVip('VIP3',6000)">VIP3</button>
+  <button onclick="buyVip('VIP4',12000)">VIP4</button>
+</div>
 
-  <!-- WITHDRAW -->
-  <div class="card">
-    <h2>🏧 Withdraw</h2>
+<!-- DEPOSIT -->
+<div class="card">
 
-    <input id="withdrawAmount" type="number" placeholder="Amount">
+  <h2>💰 Deposit</h2>
 
-    <button onclick="requestWithdrawal(document.getElementById('withdrawAmount').value)">
-      Request
-    </button>
-  </div>
+  <input id="depositAmount" placeholder="Amount">
+  <input id="transactionId" placeholder="Transaction ID">
+
+  <button onclick="submitDeposit()">Submit Deposit</button>
+
+</div>
+
+<!-- WITHDRAW -->
+<div class="card">
+
+  <h2>🏧 Withdraw</h2>
+
+  <input id="withdrawAmount" placeholder="Amount">
+
+  <button onclick="requestWithdrawal(document.getElementById('withdrawAmount').value)">
+    Withdraw
+  </button>
 
 </div>
 

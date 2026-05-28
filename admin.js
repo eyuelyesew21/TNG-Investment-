@@ -79,118 +79,8 @@ async function loadUsers() {
 
           <td>${user.balance || 0}</td>
 
-          <td>
-            <input
-              type="number"
-              id="balance_${user.id}"
-              placeholder="Amount"
-            />
-
-            <button onclick="
-              addBalance(${user.id})
-            ">
-              Add
-            </button>
-
-            <button onclick="
-              deductBalance(${user.id})
-            ">
-              Deduct
-            </button>
-          </td>
-
         </tr>
       `).join('');
-}
-
-/* =========================
-   ADD BALANCE
-========================= */
-async function addBalance(userId) {
-
-  const amount =
-    Number(
-      document.getElementById(
-        `balance_${userId}`
-      ).value
-    );
-
-  if (!amount || amount <= 0) {
-
-    alert("Invalid Amount");
-
-    return;
-  }
-
-  const { error } =
-    await supabase
-      .from("users")
-      .update({
-        balance:
-          amount
-      })
-      .eq("id", userId);
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert("Balance Updated");
-
-  loadUsers();
-}
-
-/* =========================
-   DEDUCT BALANCE
-========================= */
-async function deductBalance(userId) {
-
-  const amount =
-    Number(
-      document.getElementById(
-        `balance_${userId}`
-      ).value
-    );
-
-  if (!amount || amount <= 0) {
-
-    alert("Invalid Amount");
-
-    return;
-  }
-
-  const { data: user } =
-    await supabase
-      .from("users")
-      .select("balance")
-      .eq("id", userId)
-      .single();
-
-  const newBalance =
-    (user.balance || 0) - amount;
-
-  const { error } =
-    await supabase
-      .from("users")
-      .update({
-        balance:
-          newBalance
-      })
-      .eq("id", userId);
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert("Balance Deducted");
-
-  loadUsers();
 }
 
 /* =========================
@@ -226,34 +116,19 @@ async function loadDeposits() {
           <td>
 
             ${
-              dep.receipt
-              ? `
-              <a href="${dep.receipt}"
-                 target="_blank">
-                 View
-              </a>
-              `
-              : '-'
-            }
-
-          </td>
-
-          <td>
-
-            ${
               dep.status === 'pending'
               ? `
-                <button onclick="
-                  approveDeposit(${dep.id})
-                ">
-                  Approve
-                </button>
+              <button onclick="
+                approveDeposit(${dep.id})
+              ">
+                Approve
+              </button>
 
-                <button onclick="
-                  rejectDeposit(${dep.id})
-                ">
-                  Reject
-                </button>
+              <button onclick="
+                rejectDeposit(${dep.id})
+              ">
+                Reject
+              </button>
               `
               : dep.status
             }
@@ -265,7 +140,7 @@ async function loadDeposits() {
 }
 
 /* =========================
-   SECURE APPROVE DEPOSIT
+   APPROVE DEPOSIT
 ========================= */
 async function approveDeposit(id) {
 
@@ -296,7 +171,7 @@ async function approveDeposit(id) {
 }
 
 /* =========================
-   SECURE REJECT DEPOSIT
+   REJECT DEPOSIT
 ========================= */
 async function rejectDeposit(id) {
 
@@ -344,23 +219,33 @@ async function loadWithdrawals() {
 
           <td>${w.amount}</td>
 
-          <td>${w.account_number || ''}</td>
+          <td>${w.fee}</td>
+
+          <td>${w.final_amount}</td>
+
+          <td>${w.account_number}</td>
 
           <td>${w.status}</td>
 
           <td>
 
-            <button onclick="
-              approveWithdrawal(${w.id})
-            ">
-              Approve
-            </button>
+            ${
+              w.status === 'pending'
+              ? `
+              <button onclick="
+                approveWithdrawal(${w.id})
+              ">
+                Approve
+              </button>
 
-            <button onclick="
-              rejectWithdrawal(${w.id})
-            ">
-              Reject
-            </button>
+              <button onclick="
+                rejectWithdrawal(${w.id})
+              ">
+                Reject
+              </button>
+              `
+              : w.status
+            }
 
           </td>
 
@@ -373,13 +258,17 @@ async function loadWithdrawals() {
 ========================= */
 async function approveWithdrawal(id) {
 
+  const adminEmail =
+    localStorage.getItem("adminEmail");
+
   const { error } =
-    await supabase
-      .from("withdrawals")
-      .update({
-        status: 'approved'
-      })
-      .eq("id", id);
+    await supabase.rpc(
+      "approve_withdrawal",
+      {
+        p_withdrawal_id: id,
+        p_admin_email: adminEmail
+      }
+    );
 
   if (error) {
 
@@ -419,7 +308,7 @@ async function rejectWithdrawal(id) {
 }
 
 /* =========================
-   LOAD SUPPORT TICKETS
+   LOAD TICKETS
 ========================= */
 async function loadTickets() {
 
@@ -442,7 +331,7 @@ async function loadTickets() {
 
           <td>${t.message}</td>
 
-          <td>${t.status || 'Pending'}</td>
+          <td>${t.status}</td>
 
         </tr>
       `).join('');
@@ -475,47 +364,6 @@ async function loadNews() {
 }
 
 /* =========================
-   ADD NEWS
-========================= */
-async function addNews() {
-
-  const title =
-    document.getElementById("newsTitle").value;
-
-  const content =
-    document.getElementById("newsContent").value;
-
-  if (!title || !content) {
-
-    alert("Fill all fields");
-
-    return;
-  }
-
-  const { error } =
-    await supabase
-      .from("news")
-      .insert([{
-        title,
-        content
-      }]);
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert("News Added");
-
-  document.getElementById("newsTitle").value = "";
-  document.getElementById("newsContent").value = "";
-
-  loadNews();
-}
-
-/* =========================
    LOAD VIP PLANS
 ========================= */
 async function loadVipPlans() {
@@ -523,10 +371,7 @@ async function loadVipPlans() {
   const { data } =
     await supabase
       .from("vip_plans")
-      .select("*")
-      .order("price", {
-        ascending: true
-      });
+      .select("*");
 
   document.getElementById("vipPlansTable")
     .innerHTML =
@@ -541,105 +386,8 @@ async function loadVipPlans() {
 
           <td>${v.daily_rate}%</td>
 
-          <td>
-
-            <input
-              type="number"
-              id="vip_${v.id}"
-              placeholder="New Price"
-            />
-
-            <button onclick="
-              updateVipPrice(${v.id})
-            ">
-              Update
-            </button>
-
-          </td>
-
         </tr>
       `).join('');
-}
-
-/* =========================
-   UPDATE VIP PRICE
-========================= */
-async function updateVipPrice(vipId) {
-
-  const price =
-    Number(
-      document.getElementById(
-        `vip_${vipId}`
-      ).value
-    );
-
-  if (!price || price <= 0) {
-
-    alert("Invalid Price");
-
-    return;
-  }
-
-  const { error } =
-    await supabase
-      .from("vip_plans")
-      .update({
-        price
-      })
-      .eq("id", vipId);
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert("VIP Price Updated");
-
-  loadVipPlans();
-}
-
-/* =========================
-   EXPORT WITHDRAWALS
-========================= */
-function exportWithdrawals() {
-
-  const table =
-    document.getElementById(
-      "withdrawalsTable"
-    );
-
-  let csv =
-    "ID,User ID,Amount,Account,Status\n";
-
-  for (let row of table.rows) {
-
-    csv += Array.from(row.cells)
-      .slice(0, 5)
-      .map(cell => cell.innerText)
-      .join(",");
-
-    csv += "\n";
-  }
-
-  const blob =
-    new Blob([csv], {
-      type: 'text/csv'
-    });
-
-  const url =
-    URL.createObjectURL(blob);
-
-  const a =
-    document.createElement("a");
-
-  a.href = url;
-
-  a.download =
-    "withdrawals.csv";
-
-  a.click();
 }
 
 /* =========================

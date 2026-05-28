@@ -69,6 +69,8 @@ async function loadDashboard() {
 loadPasswordResets();
 
 loadAnalytics();
+
+loadUnreadTickets();
 }
 
 /* =========================

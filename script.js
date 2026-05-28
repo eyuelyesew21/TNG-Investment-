@@ -569,3 +569,51 @@ function logout() {
    START
 ========================= */
 loadDashboard();
+
+/* =========================
+   AUTO LOGOUT SECURITY
+========================= */
+
+let inactivityTimer;
+
+/* RESET TIMER */
+function resetInactivityTimer() {
+
+  clearTimeout(inactivityTimer);
+
+  inactivityTimer =
+    setTimeout(() => {
+
+      alert(
+        "Session expired due to inactivity"
+      );
+
+      logout();
+
+    }, 15 * 60 * 1000);
+
+}
+
+/* USER ACTIVITY EVENTS */
+document.addEventListener(
+  "mousemove",
+  resetInactivityTimer
+);
+
+document.addEventListener(
+  "keydown",
+  resetInactivityTimer
+);
+
+document.addEventListener(
+  "click",
+  resetInactivityTimer
+);
+
+document.addEventListener(
+  "touchstart",
+  resetInactivityTimer
+);
+
+/* START TIMER */
+resetInactivityTimer();

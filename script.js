@@ -372,6 +372,29 @@ async function loadWithdrawals() {
     localStorage.getItem("userId");
 
   const { data } =
+
+/* =========================
+   CHECK PENDING WITHDRAWAL
+========================= */
+
+const { data: pending } =
+  await supabase
+    .from("withdrawals")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "pending");
+
+if (
+  pending &&
+  pending.length > 0
+) {
+
+  alert(
+    "You already have a pending withdrawal"
+  );
+
+  return;
+}
     await supabase
       .from("withdrawals")
       .select("*")

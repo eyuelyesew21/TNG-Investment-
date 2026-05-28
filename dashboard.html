@@ -9,53 +9,122 @@
 <body>
 
 <header>
-  <h1>TNG Dashboard</h1>
+  <h1>TNG Investment Dashboard</h1>
 </header>
 
 <div class="container">
 
-  <h2 id="welcomeText">Welcome</h2>
+  <!-- USER INFO -->
+  <div class="user-box">
 
-  <p>
-    Phone Number:
-    <span id="userPhone"></span>
-  </p>
+    <h2>👤 Welcome</h2>
 
-  <p>
-    Balance:
-    $<span id="userBalance"></span>
-  </p>
+    <p>
+      Phone:
+      <span id="userPhone"></span>
+    </p>
 
-  <p>
-    Your Referral Code:
-    <span id="userReferral"></span>
-  </p>
+    <p>
+      Balance:
+      <b>$<span id="userBalance"></span></b>
+    </p>
 
-  <p>
-    Referral Link:
-  </p>
+    <p>
+      Referral Code:
+      <span id="userReferral"></span>
+    </p>
 
-  <input
-    type="text"
-    id="referralLink"
-    readonly
-  >
+    <p>Referral Link:</p>
 
-  <br><br>
+    <input
+      type="text"
+      id="referralLink"
+      readonly
+    >
 
-  <button onclick="copyReferralLink()">
-    Copy Referral Link
-  </button>
+    <button onclick="copyReferralLink()">
+      📋 Copy Referral Link
+    </button>
 
-  <br><br>
+  </div>
 
-  <button>Deposit</button>
+  <hr>
 
-  <button>Withdraw</button>
+  <!-- VIP SECTION -->
+  <div class="vip-section">
 
-  <button onclick="logoutUser()">
-    Logout
-  </button>
+    <h2>💎 VIP Investment Plans</h2>
+
+    <p class="vip-note">
+      ⏳ All VIP plans are valid for 365 days only
+    </p>
+
+    <div class="vip-grid">
+
+      <div class="vip-card">
+        <h3>VIP 1</h3>
+        <p>Price: 1,500 ETB</p>
+        <p>Daily Return: 5%</p>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 2</h3>
+        <p>Price: 3,000 ETB</p>
+        <p>Daily Return: 6%</p>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 3</h3>
+        <p>Price: 6,000 ETB</p>
+        <p>Daily Return: 7%</p>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 4</h3>
+        <p>Price: 12,000 ETB</p>
+        <p>Daily Return: 8%</p>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 5</h3>
+        <p>Price: 24,000 ETB</p>
+        <p>Daily Return: 9%</p>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 6</h3>
+        <p>Price: 48,000 ETB</p>
+        <p>Daily Return: 10%</p>
+      </div>
+
+      <div class="vip-card">
+        <h3>VIP 7</h3>
+        <p>Price: 96,000 ETB</p>
+        <p>Daily Return: 11%</p>
+      </div>
+
+      <div class="vip-card coming-soon">
+        <h3>VIP 8 - 10</h3>
+        <p>Coming Soon...</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <hr>
+
+  <!-- ACTION BUTTONS -->
+  <div class="actions">
+
+    <button>💰 Deposit</button>
+    <button>🏧 Withdraw</button>
+
+    <button onclick="logoutUser()">
+      🚪 Logout
+    </button>
+
+  </div>
 
 </div>
 

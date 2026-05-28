@@ -395,6 +395,21 @@ if (
 
   return;
 }
+
+/* =========================
+   BALANCE CHECK
+========================= */
+
+if (
+  withdrawAmount > user.balance
+) {
+
+  alert(
+    "Insufficient balance"
+  );
+
+  return;
+}
     await supabase
       .from("withdrawals")
       .select("*")

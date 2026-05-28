@@ -10,15 +10,15 @@
 <body>
 
 <header>
-  <h1>💎 TNG Investment Dashboard</h1>
+  <h1>💎 TNG Dashboard</h1>
 </header>
 
 <div class="container">
 
   <!-- USER INFO -->
-  <div class="user-box">
+  <div class="card">
 
-    <h2>👤 My Account</h2>
+    <h2>👤 Account Info</h2>
 
     <p>Phone: <span id="userPhone"></span></p>
 
@@ -29,93 +29,72 @@
     <p>Referral Link:</p>
 
     <input type="text" id="referralLink" readonly>
-
-    <button onclick="copyReferralLink()">📋 Copy Link</button>
+    <button onclick="copyReferralLink()">Copy</button>
 
   </div>
 
-  <!-- WITHDRAWAL RULES -->
-  <div class="withdraw-info">
+  <!-- WITHDRAW RULES -->
+  <div class="card">
 
     <h2>🏧 Withdrawal Rules</h2>
 
-    <p>Minimum: <b>300 ETB</b></p>
-    <p>Fee: <b>10%</b></p>
-    <p>Time: <b>5 AM - 11 PM</b></p>
-
-    <p style="color:orange;">
-      ⚠️ VIP membership required for withdrawal
-    </p>
+    <p>Minimum: 300 ETB</p>
+    <p>Fee: 10%</p>
+    <p>Time: 5 AM - 11 PM</p>
+    <p style="color:red;">VIP required for withdrawal</p>
 
   </div>
 
   <!-- VIP PLANS -->
-  <div class="vip-section">
+  <div class="card">
 
-    <h2>💎 VIP Investment Plans</h2>
+    <h2>💎 VIP Plans</h2>
 
-    <div class="vip-grid">
-
-      <div class="vip-card">
-        <h3>VIP 1</h3>
-        <p>1500 ETB - 5%</p>
-        <button onclick="buyVip('VIP1',1500)">Buy</button>
-      </div>
-
-      <div class="vip-card">
-        <h3>VIP 2</h3>
-        <p>3000 ETB - 6%</p>
-        <button onclick="buyVip('VIP2',3000)">Buy</button>
-      </div>
-
-      <div class="vip-card">
-        <h3>VIP 3</h3>
-        <p>6000 ETB - 7%</p>
-        <button onclick="buyVip('VIP3',6000)">Buy</button>
-      </div>
-
-      <div class="vip-card">
-        <h3>VIP 4</h3>
-        <p>12000 ETB - 8%</p>
-        <button onclick="buyVip('VIP4',12000)">Buy</button>
-      </div>
-
-      <div class="vip-card">
-        <h3>VIP 5</h3>
-        <p>24000 ETB - 9%</p>
-        <button onclick="buyVip('VIP5',24000)">Buy</button>
-      </div>
-
-      <div class="vip-card">
-        <h3>VIP 6</h3>
-        <p>48000 ETB - 10%</p>
-        <button onclick="buyVip('VIP6',48000)">Buy</button>
-      </div>
-
-      <div class="vip-card">
-        <h3>VIP 7</h3>
-        <p>96000 ETB - 11%</p>
-        <button onclick="buyVip('VIP7',96000)">Buy</button>
-      </div>
-
-      <div class="vip-card coming-soon">
-        VIP 8 - 10 Coming Soon
-      </div>
-
-    </div>
+    <button onclick="buyVip('VIP1',1500)">VIP1 - 1500</button>
+    <button onclick="buyVip('VIP2',3000)">VIP2 - 3000</button>
+    <button onclick="buyVip('VIP3',6000)">VIP3 - 6000</button>
+    <button onclick="buyVip('VIP4',12000)">VIP4 - 12000</button>
+    <button onclick="buyVip('VIP5',24000)">VIP5 - 24000</button>
+    <button onclick="buyVip('VIP6',48000)">VIP6 - 48000</button>
+    <button onclick="buyVip('VIP7',96000)">VIP7 - 96000</button>
 
   </div>
 
-  <!-- ACTIONS -->
-  <div class="actions">
+  <!-- UPGRADE -->
+  <div class="card">
 
-    <button onclick="logoutUser()">🚪 Logout</button>
+    <h2>⬆ VIP Upgrade</h2>
+
+    <button onclick="upgradeVip('VIP2',3000)">Upgrade to VIP2</button>
+    <button onclick="upgradeVip('VIP3',6000)">Upgrade to VIP3</button>
+    <button onclick="upgradeVip('VIP4',12000)">Upgrade to VIP4</button>
+
+  </div>
+
+  <!-- WITHDRAW -->
+  <div class="card">
+
+    <h2>🏧 Withdraw</h2>
+
+    <input type="number" id="withdrawAmount" placeholder="Enter amount">
+
+    <button onclick="requestWithdrawal(
+      document.getElementById('withdrawAmount').value
+    )">
+      Request Withdraw
+    </button>
+
+  </div>
+
+  <!-- LOGOUT -->
+  <div class="card">
+
+    <button onclick="logoutUser()">Logout</button>
 
   </div>
 
 </div>
 
-<!-- SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="script.js"></script>
 

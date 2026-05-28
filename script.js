@@ -949,3 +949,32 @@ async function sendResetRequest() {
 
   alert("Reset request sent to admin");
 }
+
+async function loadNotifications() {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  const { data } =
+    await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", userId)
+      .order("id", { ascending: false });
+
+  const container =
+    document.getElementById("notificationList");
+
+  container.innerHTML = "";
+
+  data?.forEach(n => {
+
+    const div =
+      document.createElement("div");
+
+    div.innerText =
+      n.message;
+
+    container.appendChild(div);
+  });
+}

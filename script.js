@@ -162,6 +162,9 @@ if (currentUser) {
   const referralElement =
     document.getElementById("userReferral");
 
+  const referralLinkElement =
+    document.getElementById("referralLink");
+
   if (phoneElement) {
 
     phoneElement.innerText =
@@ -183,6 +186,31 @@ if (currentUser) {
 
   }
 
+  if (referralLinkElement) {
+
+    referralLinkElement.value =
+      window.location.origin +
+      "/register.html?ref=" +
+      currentUser.referral_code;
+
+  }
+
+}
+
+function copyReferralLink() {
+
+  const referralLink =
+    document.getElementById("referralLink");
+
+  referralLink.select();
+
+  referralLink.setSelectionRange(0, 99999);
+
+  navigator.clipboard.writeText(
+    referralLink.value
+  );
+
+  alert("Referral Link Copied");
 }
 
 function logoutUser() {

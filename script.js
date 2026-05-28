@@ -84,6 +84,8 @@ async function loadDashboard() {
   loadChats();
 
   loadTickets();
+
+loadNotifications();
 }
 
 /* =========================

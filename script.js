@@ -18,7 +18,7 @@ async function loadDashboard() {
     return;
   }
 
-  /* USER */
+  /* USER INFO */
   const { data: user } =
     await supabase
       .from("users")
@@ -27,12 +27,14 @@ async function loadDashboard() {
       .single();
 
   document.getElementById("balance")
-    .innerText = user.balance || 0;
+    .innerText =
+      user.balance || 0;
 
   document.getElementById("referralCode")
-    .innerText = user.referral_code || "";
+    .innerText =
+      user.referral_code || "";
 
-  /* VIP */
+  /* ACTIVE VIP */
   const { data: vip } =
     await supabase
       .from("user_vip")
@@ -76,6 +78,8 @@ async function loadDashboard() {
   loadChats();
 
   loadTickets();
+
+  loadIncomeHistory();
 }
 
 /* =========================
@@ -104,7 +108,9 @@ async function loadVipPlans() {
             ${v.daily_rate}%
           </p>
 
-          <p>Duration: 365 Days</p>
+          <p>Duration:
+            365 Days
+          </p>
 
           <button onclick="
             buyVip(${v.id})
@@ -157,6 +163,71 @@ async function buyVip(vipId) {
   alert("VIP Purchased Successfully");
 
   loadDashboard();
+}
+
+/* =========================
+   SECURE DAILY CLAIM
+========================= */
+async function claimDailyIncome() {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  const { error } =
+    await supabase.rpc(
+      "claim_daily_income",
+      {
+        p_user_id: userId
+      }
+    );
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+  alert("Daily Income Claimed");
+
+  loadDashboard();
+}
+
+/* =========================
+   LOAD INCOME HISTORY
+========================= */
+async function loadIncomeHistory() {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  const { data } =
+    await supabase
+      .from("vip_income_history")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", {
+        ascending: false
+      });
+
+  document.getElementById("incomeHistory")
+    .innerHTML =
+      data.map(i => `
+        <div class="income-item">
+
+          <p>
+            Income:
+            ${i.amount} ETB
+          </p>
+
+          <p>
+            ${new Date(
+              i.created_at
+            ).toLocaleString()}
+          </p>
+
+        </div>
+      `).join('');
 }
 
 /* =========================
@@ -229,7 +300,8 @@ async function sendChat() {
       message: message
     }]);
 
-  document.getElementById("chatMessage").value = "";
+  document.getElementById("chatMessage").value =
+    "";
 
   loadChats();
 }
@@ -261,7 +333,8 @@ async function submitTicket() {
 
   alert("Ticket Submitted");
 
-  document.getElementById("ticketMessage").value = "";
+  document.getElementById("ticketMessage").value =
+    "";
 
   loadTickets();
 }
@@ -290,7 +363,8 @@ async function loadTickets() {
 
           <p>${t.message}</p>
 
-          <p>Status:
+          <p>
+            Status:
             ${t.status || 'Pending'}
           </p>
 

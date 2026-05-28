@@ -709,6 +709,18 @@ function logout() {
 loadDashboard();
 
 /* =========================
+   LIVE REFRESH
+========================= */
+
+setInterval(() => {
+
+  loadNotifications();
+
+  loadTickets();
+
+}, 10000);
+
+/* =========================
    AUTO LOGOUT SECURITY
 ========================= */
 

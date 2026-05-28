@@ -1,6 +1,6 @@
 const supabaseUrl = "https://dknksfcesarrvyfufdti.supabase.co";
 
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImRrbmtzZmNlc2FycnZ5ZnVmZHRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTI4ODMsImV4cCI6MjA5NTQ2ODg4M30.bemPqKzMlUrK7C9bddrAuspC-JtYIfciCxi7eECQEwk";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJI1NiIsInJlZiI6ImRrbmtzZmNlc2FycnZ5ZnVmZHRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTI4ODMsImV4cCI6MjA5NTQ2ODg4M30.bemPqKzMlUrK7C9bddrAuspC-JtYIfciCxi7eECQEwk";
 
 const supabase = window.supabase.createClient(
   supabaseUrl,
@@ -34,7 +34,7 @@ async function registerUser() {
     document.getElementById("confirmPassword").value;
 
   const referralCodeInput =
-    document.getElementById("referralCode").value;
+    document.getElementById("referralCode");
 
   const phoneRegex = /^(09|07)\d{8}$/;
 
@@ -76,7 +76,7 @@ async function registerUser() {
 
         referral_code: myReferralCode,
 
-        referred_by: referralCodeInput || null
+        referred_by: referralCodeInput?.value || null
       }
     ]);
 
@@ -148,7 +148,6 @@ if (
     window.location.href = "login.html";
 
   }
-
 }
 
 if (currentUser) {
@@ -194,7 +193,6 @@ if (currentUser) {
       currentUser.referral_code;
 
   }
-
 }
 
 function copyReferralLink() {
@@ -221,3 +219,19 @@ function logoutUser() {
 
   window.location.href = "login.html";
 }
+
+// Auto-fill referral code from URL (?ref=XXXX)
+const urlParams =
+  new URLSearchParams(window.location.search);
+
+const refCode =
+  urlParams.get("ref");
+
+const referralInput =
+  document.getElementById("referralCode");
+
+if (refCode && referralInput) {
+
+  referralInput.value = refCode;
+
+  }

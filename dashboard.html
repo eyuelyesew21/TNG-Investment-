@@ -1,76 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TNG Dashboard</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1>💎 TNG Dashboard</h1>
+  <header class="topbar">
+    <h1>💎 Trust New Generation (TNG)</h1>
+  </header>
 
-<div class="card">
+  <!-- PROFILE -->
+  <div class="card">
 
-  <h2>👤 Profile</h2>
+    <h2>👤 Member Profile</h2>
 
-  <p>Phone: <span id="userPhone"></span></p>
-  <p>Balance: <span id="userBalance"></span></p>
-  <p>Referral: <span id="userReferral"></span></p>
+    <p>📱 Phone: <span id="userPhone"></span></p>
+    <p>💰 Balance: <span id="userBalance"></span> Birr</p>
+    <p>🎁 Referral Code: <span id="userReferral"></span></p>
 
-</div>
+  </div>
 
-<!-- COMPANY PROFILE -->
-<div class="card">
+  <!-- COMPANY PROFILE -->
+  <div class="card">
 
-  <h2>🏢 Company Profile</h2>
+    <h2>🏢 Company Profile / የኩባንያ መግለጫ</h2>
 
-  <p>
-    Trust New Generation (TNG) በኢትዮጵያ ውስጥ የዲጂታል ኢኮኖሚ ለማሳደግ የተመሰረተ መድረክ ነው።
-  </p>
+    <h3>🇪🇹 በአማርኛ</h3>
 
-  <p>
-    TNG is a modern digital investment platform that provides income opportunities through VIP investment packages and referral systems.
-  </p>
+    <p>
+      Trust New Generation (TNG) በኢትዮጵያ ውስጥ የዲጂታል ኢኮኖሚን ለማሳደግ እና ለዜጎች አዲስ የገቢ ምንጭ ለመፍጠር የተመሰረተ ዘመናዊ የኦንላይን ኢንቨስትመንት መድረክ ነው።
+    </p>
 
-</div>
+    <p>
+      ተጠቃሚዎች በVIP ደረጃዎች ኢንቨስት በማድረግ እና ቀላል ዲጂታል ተግባራትን በማከናወን ዕለታዊ ትርፍ ያገኛሉ።
+    </p>
 
-<!-- VIP -->
-<div class="card">
-  <h2>💎 VIP Plans</h2>
+    <h3>🌍 English</h3>
 
-  <button onclick="buyVip('VIP1',1500)">VIP1</button>
-  <button onclick="buyVip('VIP2',3000)">VIP2</button>
-  <button onclick="buyVip('VIP3',6000)">VIP3</button>
-  <button onclick="buyVip('VIP4',12000)">VIP4</button>
-</div>
+    <p>
+      Trust New Generation (TNG) is a modern digital investment platform established to empower Ethiopian citizens through digital income opportunities.
+    </p>
 
-<!-- DEPOSIT -->
-<div class="card">
+    <p>
+      Members earn daily profits through VIP investment packages, referrals, and simple digital activities.
+    </p>
 
-  <h2>💰 Deposit</h2>
+  </div>
 
-  <input id="depositAmount" placeholder="Amount">
-  <input id="transactionId" placeholder="Transaction ID">
+  <!-- NEWS -->
+  <div class="card">
 
-  <button onclick="submitDeposit()">Submit Deposit</button>
+    <h2>📢 Latest News</h2>
 
-</div>
+    <div id="newsBox"></div>
 
-<!-- WITHDRAW -->
-<div class="card">
+  </div>
 
-  <h2>🏧 Withdraw</h2>
+  <!-- VIP -->
+  <div class="card">
 
-  <input id="withdrawAmount" placeholder="Amount">
+    <h2>💎 VIP Packages</h2>
 
-  <button onclick="requestWithdrawal(document.getElementById('withdrawAmount').value)">
-    Withdraw
-  </button>
+    <button onclick="buyVip('VIP1',1500)">VIP 1 - 1500</button>
+    <button onclick="buyVip('VIP2',3000)">VIP 2 - 3000</button>
+    <button onclick="buyVip('VIP3',6000)">VIP 3 - 6000</button>
+    <button onclick="buyVip('VIP4',12000)">VIP 4 - 12000</button>
 
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="script.js"></script>
+  <!-- DEPOSIT -->
+  <div class="card">
+
+    <h2>💰 Deposit</h2>
+
+    <button onclick="selectMethod('Telebirr')">Telebirr</button>
+    <button onclick="selectMethod('M-Pesa')">M-Pesa</button>
+    <button onclick="selectMethod('Crypto')">Crypto</button>
+
+    <hr>
+
+    <p>
+      📞 Telebirr: 0944623638
+      <button onclick="copyText('0944623638')">Copy</button>
+    </p>
+
+    <p>
+      📞 M-Pesa: 0710543712
+      <button onclick="copyText('0710543712')">Copy</button>
+    </p>
+
+    <input id="depositAmount" type="number" placeholder="Amount">
+
+    <input id="transactionId" placeholder="Transaction ID">
+
+    <input type="file" id="receipt">
+
+    <button onclick="submitDeposit()">
+      Submit Deposit
+    </button>
+
+  </div>
+
+  <!-- WITHDRAW -->
+  <div class="card">
+
+    <h2>🏧 Withdrawal</h2>
+
+    <p>Minimum Withdrawal: 300 Birr</p>
+    <p>Withdrawal Fee: 10%</p>
+    <p>Processing Time: 5 AM - 11 PM (Daily)</p>
+
+    <input id="withdrawAmount" type="number" placeholder="Amount">
+
+    <button onclick="requestWithdrawal(
+      document.getElementById('withdrawAmount').value
+    )">
+      Withdraw
+    </button>
+
+  </div>
+
+  <!-- CHAT -->
+  <div class="card">
+
+    <h2>💬 TNG Chat Room</h2>
+
+    <div id="chatBox"></div>
+
+    <input id="chatMsg" placeholder="Write message">
+
+    <button onclick="sendMessage()">
+      Send
+    </button>
+
+  </div>
+
+  <!-- SUPPORT -->
+  <div class="card">
+
+    <h2>🆘 Support</h2>
+
+    <textarea id="ticketMsg" placeholder="Describe your problem"></textarea>
+
+    <button onclick="sendTicket()">
+      Send To Admin
+    </button>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="script.js"></script>
 
 </body>
 </html>

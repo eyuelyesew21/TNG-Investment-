@@ -3,13 +3,80 @@ const supabase = window.supabase.createClient(
   "YOUR_ANON_KEY"
 );
 
-/* ADMIN LOGIN */
-function adminLogin() {
+/* =========================
+   ADMIN LOGIN
+========================= */
+async function adminLogin() {
+
+  const email =
+    document.getElementById("adminEmail").value;
 
   const password =
     document.getElementById("adminPassword").value;
 
-  if (password === "123456") {
+  const { data, error } =
+    await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+  const { data: admin } =
+    await supabase
+      .from("admins")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+  if (!admin) {
+
+    alert("Access Denied");
+
+    await supabase.auth.signOut();
+
+    return;
+  }
+
+  document.getElementById("adminPanel")
+    .style.display = "block";
+
+  loadDeposits();
+
+  loadWithdrawals();
+
+  loadTickets();
+
+  loadNews();
+}
+
+/* =========================
+   AUTO SESSION
+========================= */
+async function checkAdminSession() {
+
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+
+  if (!session) return;
+
+  const email =
+    session.user.email;
+
+  const { data: admin } =
+    await supabase
+      .from("admins")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+  if (admin) {
 
     document.getElementById("adminPanel")
       .style.display = "block";
@@ -20,13 +87,25 @@ function adminLogin() {
 
     loadTickets();
 
-  } else {
-
-    alert("Wrong Password");
+    loadNews();
   }
 }
 
-/* LOAD DEPOSITS */
+checkAdminSession();
+
+/* =========================
+   LOGOUT
+========================= */
+async function logoutAdmin() {
+
+  await supabase.auth.signOut();
+
+  location.reload();
+}
+
+/* =========================
+   LOAD DEPOSITS
+========================= */
 async function loadDeposits() {
 
   const { data } = await supabase
@@ -44,7 +123,7 @@ async function loadDeposits() {
 
         <p>Method: ${d.method}</p>
 
-        <p>TX ID: ${d.transaction_id}</p>
+        <p>Transaction: ${d.transaction_id}</p>
 
         <button onclick="
           approveDeposit(
@@ -66,7 +145,9 @@ async function loadDeposits() {
     `).join('');
 }
 
-/* APPROVE DEPOSIT */
+/* =========================
+   APPROVE DEPOSIT
+========================= */
 async function approveDeposit(
   depositId,
   userId,
@@ -80,26 +161,22 @@ async function approveDeposit(
     })
     .eq("id", depositId);
 
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  await supabase
-    .from("users")
-    .update({
-      balance:
-        Number(user.balance) + Number(amount)
-    })
-    .eq("id", userId);
+  await supabase.rpc(
+    "add_user_balance",
+    {
+      target_user_id: userId,
+      amount: amount
+    }
+  );
 
   alert("Deposit Approved");
 
   loadDeposits();
 }
 
-/* REJECT DEPOSIT */
+/* =========================
+   REJECT DEPOSIT
+========================= */
 async function rejectDeposit(id) {
 
   await supabase
@@ -114,7 +191,9 @@ async function rejectDeposit(id) {
   loadDeposits();
 }
 
-/* LOAD WITHDRAWALS */
+/* =========================
+   LOAD WITHDRAWALS
+========================= */
 async function loadWithdrawals() {
 
   const { data } = await supabase
@@ -163,11 +242,13 @@ async function loadWithdrawals() {
     `).join('');
 }
 
-/* APPROVE WITHDRAW */
+/* =========================
+   APPROVE WITHDRAW
+========================= */
 async function approveWithdraw(
   id,
   userId,
-  net
+  amount
 ) {
 
   await supabase
@@ -177,26 +258,22 @@ async function approveWithdraw(
     })
     .eq("id", id);
 
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  await supabase
-    .from("users")
-    .update({
-      balance:
-        Number(user.balance) - Number(net)
-    })
-    .eq("id", userId);
+  await supabase.rpc(
+    "remove_user_balance",
+    {
+      target_user_id: userId,
+      amount: amount
+    }
+  );
 
   alert("Withdrawal Approved");
 
   loadWithdrawals();
 }
 
-/* REJECT WITHDRAW */
+/* =========================
+   REJECT WITHDRAW
+========================= */
 async function rejectWithdraw(id) {
 
   await supabase
@@ -211,7 +288,9 @@ async function rejectWithdraw(id) {
   loadWithdrawals();
 }
 
-/* EXPORT CSV */
+/* =========================
+   EXPORT CSV
+========================= */
 async function exportWithdrawals() {
 
   const { data } = await supabase
@@ -260,7 +339,9 @@ async function exportWithdrawals() {
   a.click();
 }
 
-/* POST NEWS */
+/* =========================
+   POST NEWS
+========================= */
 async function postNews() {
 
   const title =
@@ -277,9 +358,28 @@ async function postNews() {
     }]);
 
   alert("News Published");
+
+  loadNews();
 }
 
-/* LOAD TICKETS */
+/* =========================
+   LOAD NEWS
+========================= */
+async function loadNews() {
+
+  const { data } = await supabase
+    .from("news")
+    .select("*")
+    .order("created_at", {
+      ascending: false
+    });
+
+  console.log(data);
+}
+
+/* =========================
+   LOAD SUPPORT TICKETS
+========================= */
 async function loadTickets() {
 
   const { data } = await supabase
@@ -301,7 +401,9 @@ async function loadTickets() {
     `).join('');
 }
 
-/* ADD BALANCE */
+/* =========================
+   ADD BALANCE
+========================= */
 async function addBalance() {
 
   const userId =
@@ -312,24 +414,20 @@ async function addBalance() {
       document.getElementById("balanceAmount").value
     );
 
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  await supabase
-    .from("users")
-    .update({
-      balance:
-        Number(user.balance) + amount
-    })
-    .eq("id", userId);
+  await supabase.rpc(
+    "add_user_balance",
+    {
+      target_user_id: userId,
+      amount: amount
+    }
+  );
 
   alert("Balance Added");
 }
 
-/* REMOVE BALANCE */
+/* =========================
+   REMOVE BALANCE
+========================= */
 async function removeBalance() {
 
   const userId =
@@ -340,24 +438,20 @@ async function removeBalance() {
       document.getElementById("balanceAmount").value
     );
 
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  await supabase
-    .from("users")
-    .update({
-      balance:
-        Number(user.balance) - amount
-    })
-    .eq("id", userId);
+  await supabase.rpc(
+    "remove_user_balance",
+    {
+      target_user_id: userId,
+      amount: amount
+    }
+  );
 
   alert("Balance Removed");
 }
 
-/* UPDATE VIP PRICE */
+/* =========================
+   UPDATE VIP PRICE
+========================= */
 async function updateVipPrice() {
 
   const vip =

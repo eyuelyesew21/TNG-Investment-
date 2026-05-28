@@ -924,3 +924,28 @@ function logoutUser() {
 
   window.location.href = "index.html";
 }
+
+async function sendResetRequest() {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  const { error } =
+    await supabase
+      .from("support_tickets")
+      .insert([
+        {
+          user_id: userId,
+          type: "password_reset",
+          message: "I want to reset my password",
+          status: "pending"
+        }
+      ]);
+
+  if (error) {
+    alert("Failed to send request");
+    return;
+  }
+
+  alert("Reset request sent to admin");
+}

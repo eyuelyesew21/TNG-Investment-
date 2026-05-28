@@ -1,123 +1,74 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0f172a;
-  color: #e5e7eb;
+const supabaseUrl = "https://dknksfcesarrvyfufdti.supabase.co";
+
+const supabaseKey = "YOUR_ANON_KEY_HERE";
+
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+/* ================= CURRENT USER ================= */
+const currentUser = JSON.parse(localStorage.getItem("tngUser"));
+
+if (!currentUser) {
+  window.location.href = "login.html";
 }
 
-header {
-  background: #111827;
-  padding: 15px;
-  text-align: center;
-  border-bottom: 1px solid #1f2937;
+/* ================= LOAD USER DATA ================= */
+async function loadUser() {
+
+  const { data } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", currentUser.id)
+    .single();
+
+  if (!data) return;
+
+  document.getElementById("userPhone").innerText = data.phone;
+  document.getElementById("userBalance").innerText = data.balance;
+  document.getElementById("userReferral").innerText = data.referral_code;
+
+  document.getElementById("referralLink").value =
+    window.location.origin +
+    "/register.html?ref=" +
+    data.referral_code;
 }
 
-.container {
-  padding: 20px;
-  max-width: 1000px;
-  margin: auto;
+loadUser();
+
+/* ================= COPY LINK ================= */
+function copyReferralLink() {
+  const link = document.getElementById("referralLink");
+
+  link.select();
+  document.execCommand("copy");
+
+  alert("Referral Link Copied");
 }
 
-/* ================= USER BOX ================= */
-.user-box {
-  background: #111827;
-  padding: 15px;
-  border-radius: 12px;
-  border: 1px solid #1f2937;
-  margin-bottom: 20px;
+/* ================= LOGOUT ================= */
+function logoutUser() {
+  localStorage.removeItem("tngUser");
+  window.location.href = "login.html";
 }
 
-.user-box p {
-  margin: 8px 0;
-}
+/* ================= WITHDRAWAL RULE CHECK ================= */
+function canWithdraw() {
 
-input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border-radius: 8px;
-  border: 1px solid #374151;
-  background: #0f172a;
-  color: white;
-}
+  const hour = new Date().getHours();
 
-/* ================= BUTTONS ================= */
-button {
-  margin-top: 10px;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #2563eb;
-  color: white;
-  transition: 0.3s;
-}
-
-button:hover {
-  background: #1d4ed8;
-}
-
-/* ================= VIP SECTION ================= */
-.vip-section {
-  margin-top: 20px;
-}
-
-.vip-section h2 {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.vip-note {
-  text-align: center;
-  color: #9ca3af;
-  font-size: 14px;
-}
-
-.vip-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 15px;
-  margin-top: 20px;
-}
-
-/* ================= VIP CARD ================= */
-.vip-card {
-  background: #111827;
-  padding: 15px;
-  border-radius: 12px;
-  border: 1px solid #1f2937;
-  text-align: center;
-  transition: 0.3s;
-}
-
-.vip-card:hover {
-  transform: scale(1.05);
-  border-color: #38bdf8;
-}
-
-.vip-card h3 {
-  color: #38bdf8;
-}
-
-/* ================= COMING SOON ================= */
-.coming-soon {
-  opacity: 0.5;
-}
-
-/* ================= ACTION AREA ================= */
-.actions {
-  text-align: center;
-  margin-top: 20px;
-}
-
-hr {
-  border: 0;
-  height: 1px;
-  background: #1f2937;
-  margin: 20px 0;
-}
-
-/* ================= SMALL TEXT ================= */
-small {
-  color: #9ca3af;
+  if (hour < 5 || hour > 23) {
+    alert("Withdrawal allowed only 5 AM - 11 PM");
+    return false;
   }
+
+  if (!currentUser.vip_active) {
+    alert("You must buy VIP to withdraw");
+    return false;
+  }
+
+  if (currentUser.balance < 300) {
+    alert("Minimum withdrawal is 300 ETB");
+    return false;
+  }
+
+  return true;
+}

@@ -404,3 +404,48 @@ function logout() {
    START
 ========================= */
 checkAdmin();
+
+/* =========================
+   ADMIN AUTO LOGOUT
+========================= */
+
+let adminInactivityTimer;
+
+function resetAdminTimer() {
+
+  clearTimeout(adminInactivityTimer);
+
+  adminInactivityTimer =
+    setTimeout(() => {
+
+      alert(
+        "Admin session expired"
+      );
+
+      logout();
+
+    }, 15 * 60 * 1000);
+
+}
+
+document.addEventListener(
+  "mousemove",
+  resetAdminTimer
+);
+
+document.addEventListener(
+  "keydown",
+  resetAdminTimer
+);
+
+document.addEventListener(
+  "click",
+  resetAdminTimer
+);
+
+document.addEventListener(
+  "touchstart",
+  resetAdminTimer
+);
+
+resetAdminTimer();

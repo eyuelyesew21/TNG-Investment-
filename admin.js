@@ -56,7 +56,7 @@ async function adminLogin() {
 }
 
 /* =========================
-   AUTO SESSION
+   CHECK SESSION
 ========================= */
 async function checkAdminSession() {
 
@@ -123,7 +123,7 @@ async function loadDeposits() {
 
         <p>Method: ${d.method}</p>
 
-        <p>Transaction: ${d.transaction_id}</p>
+        <p>Transaction ID: ${d.transaction_id}</p>
 
         <button onclick="
           approveDeposit(
@@ -223,11 +223,7 @@ async function loadWithdrawals() {
         <p>Net Amount: ${w.net_amount}</p>
 
         <button onclick="
-          approveWithdraw(
-            ${w.id},
-            ${w.user_id},
-            ${w.net_amount}
-          )
+          approveWithdraw(${w.id})
         ">
           Approve
         </button>
@@ -243,28 +239,24 @@ async function loadWithdrawals() {
 }
 
 /* =========================
-   APPROVE WITHDRAW
+   SECURE APPROVE WITHDRAW
 ========================= */
-async function approveWithdraw(
-  id,
-  userId,
-  amount
-) {
+async function approveWithdraw(id) {
 
-  await supabase
-    .from("withdrawals")
-    .update({
-      status: "approved"
-    })
-    .eq("id", id);
+  const { error } =
+    await supabase.rpc(
+      "secure_approve_withdrawal",
+      {
+        withdrawal_id: id
+      }
+    );
 
-  await supabase.rpc(
-    "remove_user_balance",
-    {
-      target_user_id: userId,
-      amount: amount
-    }
-  );
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
 
   alert("Withdrawal Approved");
 
@@ -468,4 +460,4 @@ async function updateVipPrice() {
     .eq("name", vip);
 
   alert("VIP Price Updated");
-}
+            }

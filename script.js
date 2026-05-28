@@ -159,6 +159,9 @@ if (currentUser) {
   const balanceElement =
     document.getElementById("userBalance");
 
+  const referralElement =
+    document.getElementById("userReferral");
+
   if (phoneElement) {
 
     phoneElement.innerText =
@@ -170,6 +173,13 @@ if (currentUser) {
 
     balanceElement.innerText =
       currentUser.balance;
+
+  }
+
+  if (referralElement) {
+
+    referralElement.innerText =
+      currentUser.referral_code;
 
   }
 

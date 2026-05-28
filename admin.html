@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TNG Admin Panel</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <h1>⚙ TNG ADMIN PANEL</h1>
+
+  <!-- ADMIN LOGIN -->
+  <div class="card">
+
+    <h2>🔐 Admin Login</h2>
+
+    <input
+      type="password"
+      id="adminPassword"
+      placeholder="Admin Password"
+    >
+
+    <button onclick="adminLogin()">
+      Login
+    </button>
+
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="adminPanel" style="display:none;">
+
+    <!-- DEPOSITS -->
+    <div class="card">
+
+      <h2>💰 Pending Deposits</h2>
+
+      <div id="depositList"></div>
+
+    </div>
+
+    <!-- WITHDRAWALS -->
+    <div class="card">
+
+      <h2>🏧 Withdrawal Requests</h2>
+
+      <button onclick="exportWithdrawals()">
+        Export Excel
+      </button>
+
+      <div id="withdrawList"></div>
+
+    </div>
+
+    <!-- NEWS -->
+    <div class="card">
+
+      <h2>📢 Post News</h2>
+
+      <input id="newsTitle" placeholder="News Title">
+
+      <textarea
+        id="newsContent"
+        placeholder="News Content"
+      ></textarea>
+
+      <button onclick="postNews()">
+        Publish News
+      </button>
+
+    </div>
+
+    <!-- SUPPORT -->
+    <div class="card">
+
+      <h2>🆘 Support Tickets</h2>
+
+      <div id="ticketList"></div>
+
+    </div>
+
+    <!-- USER BALANCE CONTROL -->
+    <div class="card">
+
+      <h2>💳 User Balance Control</h2>
+
+      <input id="targetUserId" placeholder="User ID">
+
+      <input
+        id="balanceAmount"
+        placeholder="Amount"
+      >
+
+      <button onclick="addBalance()">
+        Add Balance
+      </button>
+
+      <button onclick="removeBalance()">
+        Remove Balance
+      </button>
+
+    </div>
+
+    <!-- VIP CONTROL -->
+    <div class="card">
+
+      <h2>💎 VIP Price Control</h2>
+
+      <input id="vipName" placeholder="VIP Name">
+
+      <input
+        id="vipPrice"
+        placeholder="New VIP Price"
+      >
+
+      <button onclick="updateVipPrice()">
+        Update VIP Price
+      </button>
+
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="admin.js"></script>
+
+</body>
+</html>

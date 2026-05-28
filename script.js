@@ -864,3 +864,17 @@ document.addEventListener(
 
 /* START TIMER */
 resetInactivityTimer();
+
+function validateReferral(phone, referralCode) {
+
+  if (!referralCode) return true;
+
+  if (phone === referralCode) {
+
+    alert("You cannot refer yourself");
+
+    return false;
+  }
+
+  return true;
+}

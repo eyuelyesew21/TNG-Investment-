@@ -14,14 +14,30 @@
 
 <div class="container">
 
-  <h2>Welcome User</h2>
+  <h2 id="welcomeText">Welcome</h2>
 
-  <p>Balance: $0.00</p>
+  <p>
+    Phone Number:
+    <span id="userPhone"></span>
+  </p>
+
+  <p>
+    Balance:
+    $<span id="userBalance"></span>
+  </p>
 
   <button>Deposit</button>
+
   <button>Withdraw</button>
 
+  <button onclick="logoutUser()">
+    Logout
+  </button>
+
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="script.js"></script>
 
 </body>
 </html>

@@ -73,13 +73,17 @@ async function loadDashboard() {
 
   loadVipPlans();
 
+  loadIncomeHistory();
+
+  loadWithdrawals();
+
+  loadDeposits();
+
   loadNews();
 
   loadChats();
 
   loadTickets();
-
-  loadIncomeHistory();
 }
 
 /* =========================
@@ -108,7 +112,7 @@ async function loadVipPlans() {
             ${v.daily_rate}%
           </p>
 
-          <p>Duration:
+          <p>VIP Life:
             365 Days
           </p>
 
@@ -123,26 +127,12 @@ async function loadVipPlans() {
 }
 
 /* =========================
-   SECURE BUY VIP
+   BUY VIP
 ========================= */
 async function buyVip(vipId) {
 
   const userId =
     localStorage.getItem("userId");
-
-  if (!userId) {
-
-    alert("Login Required");
-
-    return;
-  }
-
-  const confirmed =
-    confirm(
-      "Are you sure you want to purchase this VIP?"
-    );
-
-  if (!confirmed) return;
 
   const { error } =
     await supabase.rpc(
@@ -160,13 +150,13 @@ async function buyVip(vipId) {
     return;
   }
 
-  alert("VIP Purchased Successfully");
+  alert("VIP Purchased");
 
   loadDashboard();
 }
 
 /* =========================
-   SECURE DAILY CLAIM
+   CLAIM DAILY INCOME
 ========================= */
 async function claimDailyIncome() {
 
@@ -188,7 +178,7 @@ async function claimDailyIncome() {
     return;
   }
 
-  alert("Daily Income Claimed");
+  alert("Income Claimed");
 
   loadDashboard();
 }
@@ -224,6 +214,193 @@ async function loadIncomeHistory() {
             ${new Date(
               i.created_at
             ).toLocaleString()}
+          </p>
+
+        </div>
+      `).join('');
+}
+
+/* =========================
+   SUBMIT DEPOSIT
+========================= */
+async function submitDeposit() {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  const amount =
+    document.getElementById(
+      "depositAmount"
+    ).value;
+
+  const method =
+    document.getElementById(
+      "depositMethod"
+    ).value;
+
+  const transactionId =
+    document.getElementById(
+      "transactionId"
+    ).value;
+
+  const receipt =
+    document.getElementById(
+      "receipt"
+    ).value;
+
+  const { error } =
+    await supabase
+      .from("deposits")
+      .insert([{
+        user_id: userId,
+        amount,
+        method,
+        transaction_id: transactionId,
+        receipt,
+        status: 'pending'
+      }]);
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+  alert(
+    "Deposit Submitted Successfully"
+  );
+
+  loadDeposits();
+}
+
+/* =========================
+   LOAD DEPOSITS
+========================= */
+async function loadDeposits() {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  const { data } =
+    await supabase
+      .from("deposits")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", {
+        ascending: false
+      });
+
+  document.getElementById("depositHistory")
+    .innerHTML =
+      data.map(dep => `
+        <div class="deposit-item">
+
+          <p>
+            Amount:
+            ${dep.amount}
+          </p>
+
+          <p>
+            Status:
+            ${dep.status}
+          </p>
+
+        </div>
+      `).join('');
+}
+
+/* =========================
+   SUBMIT WITHDRAWAL
+========================= */
+async function submitWithdrawal() {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  const amount =
+    Number(
+      document.getElementById(
+        "withdrawAmount"
+      ).value
+    );
+
+  const account =
+    document.getElementById(
+      "withdrawAccount"
+    ).value;
+
+  if (!amount || !account) {
+
+    alert("Fill all fields");
+
+    return;
+  }
+
+  const { error } =
+    await supabase.rpc(
+      "secure_withdraw",
+      {
+        p_user_id: userId,
+        p_amount: amount,
+        p_account: account
+      }
+    );
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+  alert(
+    "Withdrawal Request Submitted"
+  );
+
+  loadDashboard();
+}
+
+/* =========================
+   LOAD WITHDRAWALS
+========================= */
+async function loadWithdrawals() {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  const { data } =
+    await supabase
+      .from("withdrawals")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", {
+        ascending: false
+      });
+
+  document.getElementById("withdrawHistory")
+    .innerHTML =
+      data.map(w => `
+        <div class="withdraw-item">
+
+          <p>
+            Amount:
+            ${w.amount}
+          </p>
+
+          <p>
+            Fee:
+            ${w.fee}
+          </p>
+
+          <p>
+            Final:
+            ${w.final_amount}
+          </p>
+
+          <p>
+            Status:
+            ${w.status}
           </p>
 
         </div>
@@ -289,7 +466,9 @@ async function sendChat() {
     localStorage.getItem("userId");
 
   const message =
-    document.getElementById("chatMessage").value;
+    document.getElementById(
+      "chatMessage"
+    ).value;
 
   if (!message) return;
 
@@ -297,11 +476,12 @@ async function sendChat() {
     .from("chats")
     .insert([{
       user_id: userId,
-      message: message
+      message
     }]);
 
-  document.getElementById("chatMessage").value =
-    "";
+  document.getElementById(
+    "chatMessage"
+  ).value = "";
 
   loadChats();
 }
@@ -315,7 +495,9 @@ async function submitTicket() {
     localStorage.getItem("userId");
 
   const message =
-    document.getElementById("ticketMessage").value;
+    document.getElementById(
+      "ticketMessage"
+    ).value;
 
   if (!message) {
 
@@ -328,13 +510,15 @@ async function submitTicket() {
     .from("tickets")
     .insert([{
       user_id: userId,
-      message: message
+      message,
+      status: 'pending'
     }]);
 
   alert("Ticket Submitted");
 
-  document.getElementById("ticketMessage").value =
-    "";
+  document.getElementById(
+    "ticketMessage"
+  ).value = "";
 
   loadTickets();
 }
@@ -363,9 +547,8 @@ async function loadTickets() {
 
           <p>${t.message}</p>
 
-          <p>
-            Status:
-            ${t.status || 'Pending'}
+          <p>Status:
+            ${t.status}
           </p>
 
         </div>
@@ -383,6 +566,6 @@ function logout() {
 }
 
 /* =========================
-   AUTO LOAD
+   START
 ========================= */
 loadDashboard();

@@ -688,3 +688,7 @@ document.addEventListener(
 );
 
 resetAdminTimer();
+
+setInterval(() => {
+  loadUnreadTickets();
+}, 5000);

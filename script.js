@@ -31,8 +31,25 @@ async function registerUser() {
     return;
   }
 
-  localStorage.setItem("tngPhone", phone);
-  localStorage.setItem("tngPassword", password);
+  const { data, error } = await supabase
+    .from("users")
+    .insert([
+      {
+        phone: phone,
+        password: password
+      }
+    ]);
+
+  if (error) {
+
+    if (error.message.includes("duplicate")) {
+      alert("Phone number already registered");
+    } else {
+      alert(error.message);
+    }
+
+    return;
+  }
 
   alert("Registration Successful");
 
@@ -44,18 +61,23 @@ async function loginUser() {
   const phone = document.getElementById("loginPhone").value;
   const password = document.getElementById("loginPassword").value;
 
-  const savedPhone = localStorage.getItem("tngPhone");
-  const savedPassword = localStorage.getItem("tngPassword");
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("phone", phone)
+    .eq("password", password)
+    .single();
 
-  if (phone === savedPhone && password === savedPassword) {
-
-    alert("Login Successful");
-
-    window.location.href = "dashboard.html";
-
-  } else {
+  if (error || !data) {
 
     alert("Invalid phone number or password");
 
+    return;
   }
+
+  localStorage.setItem("tngUser", JSON.stringify(data));
+
+  alert("Login Successful");
+
+  window.location.href = "dashboard.html";
 }

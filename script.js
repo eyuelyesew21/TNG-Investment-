@@ -425,6 +425,50 @@ if (
 
   return;
 }
+
+/* =========================
+   WITHDRAWAL COOLDOWN
+========================= */
+
+const { data: recent } =
+  await supabase
+    .from("withdrawals")
+    .select("*")
+    .eq("user_id", userId)
+    .order(
+      "created_at",
+      {
+        ascending: false
+      }
+    )
+    .limit(1);
+
+if (
+  recent &&
+  recent.length > 0
+) {
+
+  const lastTime =
+    new Date(
+      recent[0].created_at
+    ).getTime();
+
+  const now =
+    new Date().getTime();
+
+  const diffHours =
+    (now - lastTime)
+    / 1000 / 60 / 60;
+
+  if (diffHours < 24) {
+
+    alert(
+      "You can only withdraw once every 24 hours"
+    );
+
+    return;
+  }
+}
     await supabase
       .from("withdrawals")
       .select("*")

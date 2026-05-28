@@ -3,240 +3,312 @@ const supabase = window.supabase.createClient(
   "YOUR_ANON_KEY"
 );
 
-let currentUser = JSON.parse(localStorage.getItem("tngUser"));
+/* =========================
+   LOAD DASHBOARD
+========================= */
+async function loadDashboard() {
 
-let selectedMethod = "";
+  const userId =
+    localStorage.getItem("userId");
 
-/* LOAD USER */
-async function loadUser() {
+  if (!userId) {
 
-  const { data } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", currentUser.id)
-    .single();
+    location.href = "index.html";
 
-  currentUser = data;
+    return;
+  }
 
-  document.getElementById("userPhone").innerText = data.phone;
-  document.getElementById("userBalance").innerText = data.balance;
-  document.getElementById("userReferral").innerText = data.referral_code;
+  /* USER */
+  const { data: user } =
+    await supabase
+      .from("users")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+  document.getElementById("balance")
+    .innerText = user.balance || 0;
+
+  document.getElementById("referralCode")
+    .innerText = user.referral_code || "";
+
+  /* VIP */
+  const { data: vip } =
+    await supabase
+      .from("user_vip")
+      .select(`
+        *,
+        vip_plans (
+          name,
+          price,
+          daily_rate
+        )
+      `)
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .single();
+
+  if (vip) {
+
+    document.getElementById("currentVip")
+      .innerText =
+        vip.vip_plans.name;
+
+    document.getElementById("vipExpire")
+      .innerText =
+        new Date(
+          vip.expires_at
+        ).toLocaleDateString();
+
+  } else {
+
+    document.getElementById("currentVip")
+      .innerText = "No VIP";
+
+    document.getElementById("vipExpire")
+      .innerText = "-";
+  }
+
+  loadVipPlans();
+
+  loadNews();
+
+  loadChats();
+
+  loadTickets();
 }
 
-loadUser();
+/* =========================
+   LOAD VIP PLANS
+========================= */
+async function loadVipPlans() {
 
-/* NEWS */
+  const { data } =
+    await supabase
+      .from("vip_plans")
+      .select("*")
+      .order("price", {
+        ascending: true
+      });
+
+  document.getElementById("vipPlans")
+    .innerHTML =
+      data.map(v => `
+        <div class="vip-card">
+
+          <h3>${v.name}</h3>
+
+          <p>Price: ${v.price} ETB</p>
+
+          <p>Daily Return:
+            ${v.daily_rate}%
+          </p>
+
+          <p>Duration: 365 Days</p>
+
+          <button onclick="
+            buyVip(${v.id})
+          ">
+            Buy VIP
+          </button>
+
+        </div>
+      `).join('');
+}
+
+/* =========================
+   SECURE BUY VIP
+========================= */
+async function buyVip(vipId) {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  if (!userId) {
+
+    alert("Login Required");
+
+    return;
+  }
+
+  const confirmed =
+    confirm(
+      "Are you sure you want to purchase this VIP?"
+    );
+
+  if (!confirmed) return;
+
+  const { error } =
+    await supabase.rpc(
+      "secure_buy_vip",
+      {
+        p_user_id: userId,
+        p_vip_id: vipId
+      }
+    );
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+  alert("VIP Purchased Successfully");
+
+  loadDashboard();
+}
+
+/* =========================
+   LOAD NEWS
+========================= */
 async function loadNews() {
 
-  const { data } = await supabase
-    .from("news")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data } =
+    await supabase
+      .from("news")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
 
-  document.getElementById("newsBox").innerHTML =
-    data.map(n => `
-      <div class="news-item">
-        <h4>${n.title}</h4>
-        <p>${n.content}</p>
-      </div>
-    `).join('');
+  document.getElementById("newsList")
+    .innerHTML =
+      data.map(n => `
+        <div class="news-item">
+
+          <h3>${n.title}</h3>
+
+          <p>${n.content}</p>
+
+        </div>
+      `).join('');
 }
 
-loadNews();
+/* =========================
+   LOAD CHATS
+========================= */
+async function loadChats() {
 
-/* VIP BUY */
-async function buyVip(name, price) {
+  const { data } =
+    await supabase
+      .from("chats")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
 
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", currentUser.id)
-    .single();
+  document.getElementById("chatList")
+    .innerHTML =
+      data.map(c => `
+        <div class="chat-item">
 
-  if (user.balance < price) {
-    alert("Insufficient balance");
-    return;
-  }
+          <p>${c.message}</p>
 
-  await supabase
-    .from("users")
-    .update({
-      balance: user.balance - price
-    })
-    .eq("id", currentUser.id);
-
-  await supabase
-    .from("user_vip")
-    .insert([{
-      user_id: currentUser.id,
-      package_name: name,
-      price: price,
-      status: "active",
-      last_profit_time: new Date(),
-      expires_at: new Date(
-        new Date().setDate(
-          new Date().getDate() + 365
-        )
-      )
-    }]);
-
-  alert("VIP Activated");
-
-  loadUser();
+        </div>
+      `).join('');
 }
 
-/* PAYMENT METHOD */
-function selectMethod(method) {
-  selectedMethod = method;
-  alert("Selected: " + method);
-}
+/* =========================
+   SEND CHAT
+========================= */
+async function sendChat() {
 
-/* COPY */
-function copyText(text) {
+  const userId =
+    localStorage.getItem("userId");
 
-  navigator.clipboard.writeText(text);
+  const message =
+    document.getElementById("chatMessage").value;
 
-  alert("Copied");
-}
-
-/* DEPOSIT */
-async function submitDeposit() {
-
-  const amount =
-    document.getElementById("depositAmount").value;
-
-  const tx =
-    document.getElementById("transactionId").value;
-
-  if (!amount || !tx || !selectedMethod) {
-    alert("Fill all fields");
-    return;
-  }
-
-  /* DUPLICATE CHECK */
-  const { data: existing } = await supabase
-    .from("deposits")
-    .select("*")
-    .eq("transaction_id", tx)
-    .single();
-
-  if (existing) {
-    alert("Duplicate Transaction ID");
-    return;
-  }
-
-  const file =
-    document.getElementById("receipt").files[0];
-
-  let fileUrl = "";
-
-  if (file) {
-
-    const { data } = await supabase.storage
-      .from("receipts")
-      .upload(
-        `${Date.now()}-${file.name}`,
-        file
-      );
-
-    fileUrl = data.path;
-  }
-
-  await supabase
-    .from("deposits")
-    .insert([{
-      user_id: currentUser.id,
-      amount: amount,
-      method: selectedMethod,
-      transaction_id: tx,
-      receipt: fileUrl,
-      status: "pending"
-    }]);
-
-  alert("Deposit Submitted (Pending)");
-}
-
-/* WITHDRAW */
-async function requestWithdrawal(amount) {
-
-  if (amount < 300) {
-    alert("Minimum withdrawal is 300");
-    return;
-  }
-
-  const fee = amount * 0.10;
-  const net = amount - fee;
-
-  await supabase
-    .from("withdrawals")
-    .insert([{
-      user_id: currentUser.id,
-      amount: amount,
-      fee: fee,
-      net_amount: net,
-      status: "pending"
-    }]);
-
-  alert("Withdrawal Request Sent");
-}
-
-/* CHAT */
-async function sendMessage() {
-
-  const msg =
-    document.getElementById("chatMsg").value;
-
-  if (!msg) return;
+  if (!message) return;
 
   await supabase
     .from("chats")
     .insert([{
-      sender_id: currentUser.id,
-      message: msg
+      user_id: userId,
+      message: message
     }]);
 
-  document.getElementById("chatMsg").value = "";
+  document.getElementById("chatMessage").value = "";
 
   loadChats();
 }
 
-async function loadChats() {
+/* =========================
+   SUBMIT SUPPORT TICKET
+========================= */
+async function submitTicket() {
 
-  const { data } = await supabase
-    .from("chats")
-    .select("*")
-    .order("created_at", {
-      ascending: true
-    });
+  const userId =
+    localStorage.getItem("userId");
 
-  document.getElementById("chatBox").innerHTML =
-    data.map(c => `
-      <p>
-        <b>User ${c.sender_id}:</b>
-        ${c.message}
-      </p>
-    `).join('');
-}
+  const message =
+    document.getElementById("ticketMessage").value;
 
-loadChats();
+  if (!message) {
 
-/* SUPPORT */
-async function sendTicket() {
+    alert("Enter Message");
 
-  const msg =
-    document.getElementById("ticketMsg").value;
-
-  if (!msg) return;
+    return;
+  }
 
   await supabase
     .from("tickets")
     .insert([{
-      user_id: currentUser.id,
-      message: msg,
-      status: "open"
+      user_id: userId,
+      message: message
     }]);
 
-  alert("Message Sent To Admin");
+  alert("Ticket Submitted");
 
-  document.getElementById("ticketMsg").value = "";
+  document.getElementById("ticketMessage").value = "";
+
+  loadTickets();
 }
+
+/* =========================
+   LOAD TICKETS
+========================= */
+async function loadTickets() {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  const { data } =
+    await supabase
+      .from("tickets")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", {
+        ascending: false
+      });
+
+  document.getElementById("ticketList")
+    .innerHTML =
+      data.map(t => `
+        <div class="ticket-item">
+
+          <p>${t.message}</p>
+
+          <p>Status:
+            ${t.status || 'Pending'}
+          </p>
+
+        </div>
+      `).join('');
+}
+
+/* =========================
+   LOGOUT
+========================= */
+function logout() {
+
+  localStorage.removeItem("userId");
+
+  location.href = "index.html";
+}
+
+/* =========================
+   AUTO LOAD
+========================= */
+loadDashboard();

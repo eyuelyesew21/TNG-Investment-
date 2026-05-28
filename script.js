@@ -612,6 +612,70 @@ async function loadTickets() {
         ascending: false
       });
 
+/* =========================
+   LOAD NOTIFICATIONS
+========================= */
+
+async function loadNotifications() {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  const { data } =
+    await supabase
+      .from("tickets")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("status", "answered")
+      .eq("is_read", false)
+      .order("replied_at", {
+        ascending: false
+      });
+
+  document.getElementById(
+    "notifications"
+  ).innerHTML =
+    data.map(n => `
+      <div class="notification-box">
+
+        <h4>
+          Admin Reply
+        </h4>
+
+        <p>
+          ${n.admin_reply}
+        </p>
+
+        <button onclick="
+          markNotificationRead(
+            ${n.id}
+          )
+        ">
+          Mark as Read
+        </button>
+
+      </div>
+    `).join('');
+}
+
+/* =========================
+   MARK AS READ
+========================= */
+
+async function markNotificationRead(
+  id
+) {
+
+  await supabase
+    .from("tickets")
+    .update({
+      is_read: true
+    })
+    .eq("id", id);
+
+  loadNotifications();
+}
+
   document.getElementById("ticketList")
     .innerHTML =
       data.map(t => `

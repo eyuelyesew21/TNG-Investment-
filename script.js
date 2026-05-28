@@ -7,6 +7,23 @@ const supabase = window.supabase.createClient(
   supabaseKey
 );
 
+function generateReferralCode() {
+
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  let code = "";
+
+  for (let i = 0; i < 4; i++) {
+
+    code += letters.charAt(
+      Math.floor(Math.random() * letters.length)
+    );
+
+  }
+
+  return code;
+}
+
 async function registerUser() {
 
   const phone = document.getElementById("phone").value;
@@ -15,6 +32,9 @@ async function registerUser() {
 
   const confirmPassword =
     document.getElementById("confirmPassword").value;
+
+  const referralCodeInput =
+    document.getElementById("referralCode").value;
 
   const phoneRegex = /^(09|07)\d{8}$/;
 
@@ -41,12 +61,20 @@ async function registerUser() {
     return;
   }
 
+  const myReferralCode =
+    generateReferralCode();
+
   const { data, error } = await supabase
     .from("users")
     .insert([
       {
         phone: phone,
-        password: password
+
+        password: password,
+
+        referral_code: myReferralCode,
+
+        referred_by: referralCodeInput || null
       }
     ]);
 
@@ -65,7 +93,10 @@ async function registerUser() {
     return;
   }
 
-  alert("Registration Successful");
+  alert(
+    "Registration Successful\nYour Referral Code: " +
+    myReferralCode
+  );
 
   window.location.href = "login.html";
 }

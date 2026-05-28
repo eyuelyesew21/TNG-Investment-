@@ -4,47 +4,45 @@ const supabase = window.supabase.createClient(
 );
 
 /* =========================
-   ADMIN LOGIN
+   ADMIN CHECK
 ========================= */
-async function adminLogin() {
+async function checkAdmin() {
 
-  const email =
-    document.getElementById("adminEmail").value;
+  const adminEmail =
+    localStorage.getItem("adminEmail");
 
-  const password =
-    document.getElementById("adminPassword").value;
+  if (!adminEmail) {
 
-  const { data, error } =
-    await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-  if (error) {
-
-    alert(error.message);
+    location.href = "index.html";
 
     return;
   }
 
-  const { data: admin } =
+  const { data } =
     await supabase
       .from("admins")
       .select("*")
-      .eq("email", email)
+      .eq("email", adminEmail)
       .single();
 
-  if (!admin) {
+  if (!data) {
 
     alert("Access Denied");
 
-    await supabase.auth.signOut();
+    location.href = "index.html";
 
     return;
   }
 
-  document.getElementById("adminPanel")
-    .style.display = "block";
+  loadDashboard();
+}
+
+/* =========================
+   LOAD DASHBOARD
+========================= */
+async function loadDashboard() {
+
+  loadUsers();
 
   loadDeposits();
 
@@ -53,54 +51,146 @@ async function adminLogin() {
   loadTickets();
 
   loadNews();
+
+  loadVipPlans();
 }
 
 /* =========================
-   CHECK SESSION
+   LOAD USERS
 ========================= */
-async function checkAdminSession() {
+async function loadUsers() {
 
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
-
-  if (!session) return;
-
-  const email =
-    session.user.email;
-
-  const { data: admin } =
+  const { data } =
     await supabase
-      .from("admins")
+      .from("users")
       .select("*")
-      .eq("email", email)
+      .order("id", {
+        ascending: false
+      });
+
+  document.getElementById("usersTable")
+    .innerHTML =
+      data.map(user => `
+        <tr>
+
+          <td>${user.id}</td>
+
+          <td>${user.email || ''}</td>
+
+          <td>${user.balance || 0}</td>
+
+          <td>
+            <input
+              type="number"
+              id="balance_${user.id}"
+              placeholder="Amount"
+            />
+
+            <button onclick="
+              addBalance(${user.id})
+            ">
+              Add
+            </button>
+
+            <button onclick="
+              deductBalance(${user.id})
+            ">
+              Deduct
+            </button>
+          </td>
+
+        </tr>
+      `).join('');
+}
+
+/* =========================
+   ADD BALANCE
+========================= */
+async function addBalance(userId) {
+
+  const amount =
+    Number(
+      document.getElementById(
+        `balance_${userId}`
+      ).value
+    );
+
+  if (!amount || amount <= 0) {
+
+    alert("Invalid Amount");
+
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from("users")
+      .update({
+        balance:
+          amount
+      })
+      .eq("id", userId);
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+  alert("Balance Updated");
+
+  loadUsers();
+}
+
+/* =========================
+   DEDUCT BALANCE
+========================= */
+async function deductBalance(userId) {
+
+  const amount =
+    Number(
+      document.getElementById(
+        `balance_${userId}`
+      ).value
+    );
+
+  if (!amount || amount <= 0) {
+
+    alert("Invalid Amount");
+
+    return;
+  }
+
+  const { data: user } =
+    await supabase
+      .from("users")
+      .select("balance")
+      .eq("id", userId)
       .single();
 
-  if (admin) {
+  const newBalance =
+    (user.balance || 0) - amount;
 
-    document.getElementById("adminPanel")
-      .style.display = "block";
+  const { error } =
+    await supabase
+      .from("users")
+      .update({
+        balance:
+          newBalance
+      })
+      .eq("id", userId);
 
-    loadDeposits();
+  if (error) {
 
-    loadWithdrawals();
+    alert(error.message);
 
-    loadTickets();
-
-    loadNews();
+    return;
   }
-}
 
-checkAdminSession();
+  alert("Balance Deducted");
 
-/* =========================
-   LOGOUT
-========================= */
-async function logoutAdmin() {
-
-  await supabase.auth.signOut();
-
-  location.reload();
+  loadUsers();
 }
 
 /* =========================
@@ -108,83 +198,122 @@ async function logoutAdmin() {
 ========================= */
 async function loadDeposits() {
 
-  const { data } = await supabase
-    .from("deposits")
-    .select("*")
-    .eq("status", "pending");
+  const { data } =
+    await supabase
+      .from("deposits")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
 
-  document.getElementById("depositList").innerHTML =
-    data.map(d => `
-      <div class="item">
+  document.getElementById("depositsTable")
+    .innerHTML =
+      data.map(dep => `
+        <tr>
 
-        <p>User ID: ${d.user_id}</p>
+          <td>${dep.id}</td>
 
-        <p>Amount: ${d.amount}</p>
+          <td>${dep.user_id}</td>
 
-        <p>Method: ${d.method}</p>
+          <td>${dep.amount}</td>
 
-        <p>Transaction ID: ${d.transaction_id}</p>
+          <td>${dep.method}</td>
 
-        <button onclick="
-          approveDeposit(
-            ${d.id},
-            ${d.user_id},
-            ${d.amount}
-          )
-        ">
-          Approve
-        </button>
+          <td>${dep.transaction_id}</td>
 
-        <button onclick="
-          rejectDeposit(${d.id})
-        ">
-          Reject
-        </button>
+          <td>${dep.status}</td>
 
-      </div>
-    `).join('');
+          <td>
+
+            ${
+              dep.receipt
+              ? `
+              <a href="${dep.receipt}"
+                 target="_blank">
+                 View
+              </a>
+              `
+              : '-'
+            }
+
+          </td>
+
+          <td>
+
+            ${
+              dep.status === 'pending'
+              ? `
+                <button onclick="
+                  approveDeposit(${dep.id})
+                ">
+                  Approve
+                </button>
+
+                <button onclick="
+                  rejectDeposit(${dep.id})
+                ">
+                  Reject
+                </button>
+              `
+              : dep.status
+            }
+
+          </td>
+
+        </tr>
+      `).join('');
 }
 
 /* =========================
-   APPROVE DEPOSIT
+   SECURE APPROVE DEPOSIT
 ========================= */
-async function approveDeposit(
-  depositId,
-  userId,
-  amount
-) {
+async function approveDeposit(id) {
 
-  await supabase
-    .from("deposits")
-    .update({
-      status: "approved"
-    })
-    .eq("id", depositId);
+  const adminEmail =
+    localStorage.getItem("adminEmail");
 
-  await supabase.rpc(
-    "add_user_balance",
-    {
-      target_user_id: userId,
-      amount: amount
-    }
-  );
+  const { error } =
+    await supabase.rpc(
+      "approve_deposit",
+      {
+        p_deposit_id: id,
+        p_admin_email: adminEmail
+      }
+    );
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
 
   alert("Deposit Approved");
 
   loadDeposits();
+
+  loadUsers();
 }
 
 /* =========================
-   REJECT DEPOSIT
+   SECURE REJECT DEPOSIT
 ========================= */
 async function rejectDeposit(id) {
 
-  await supabase
-    .from("deposits")
-    .update({
-      status: "rejected"
-    })
-    .eq("id", id);
+  const { error } =
+    await supabase.rpc(
+      "reject_deposit",
+      {
+        p_deposit_id: id
+      }
+    );
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
 
   alert("Deposit Rejected");
 
@@ -196,60 +325,61 @@ async function rejectDeposit(id) {
 ========================= */
 async function loadWithdrawals() {
 
-  const { data } = await supabase
-    .from("withdrawals")
-    .select(`
-      *,
-      users (
-        phone,
-        bank_name,
-        bank_account
-      )
-    `)
-    .eq("status", "pending");
+  const { data } =
+    await supabase
+      .from("withdrawals")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
 
-  document.getElementById("withdrawList").innerHTML =
-    data.map(w => `
-      <div class="item">
+  document.getElementById("withdrawalsTable")
+    .innerHTML =
+      data.map(w => `
+        <tr>
 
-        <p>Phone: ${w.users.phone}</p>
+          <td>${w.id}</td>
 
-        <p>Bank: ${w.users.bank_name}</p>
+          <td>${w.user_id}</td>
 
-        <p>Account: ${w.users.bank_account}</p>
+          <td>${w.amount}</td>
 
-        <p>Amount: ${w.amount}</p>
+          <td>${w.account_number || ''}</td>
 
-        <p>Net Amount: ${w.net_amount}</p>
+          <td>${w.status}</td>
 
-        <button onclick="
-          approveWithdraw(${w.id})
-        ">
-          Approve
-        </button>
+          <td>
 
-        <button onclick="
-          rejectWithdraw(${w.id})
-        ">
-          Reject
-        </button>
+            <button onclick="
+              approveWithdrawal(${w.id})
+            ">
+              Approve
+            </button>
 
-      </div>
-    `).join('');
+            <button onclick="
+              rejectWithdrawal(${w.id})
+            ">
+              Reject
+            </button>
+
+          </td>
+
+        </tr>
+      `).join('');
 }
 
 /* =========================
-   SECURE APPROVE WITHDRAW
+   APPROVE WITHDRAWAL
 ========================= */
-async function approveWithdraw(id) {
+async function approveWithdrawal(id) {
 
   const { error } =
-    await supabase.rpc(
-      "secure_approve_withdrawal",
-      {
-        withdrawal_id: id
-      }
-    );
+    await supabase
+      .from("withdrawals")
+      .update({
+        status: 'approved'
+      })
+      .eq("id", id);
 
   if (error) {
 
@@ -264,16 +394,24 @@ async function approveWithdraw(id) {
 }
 
 /* =========================
-   REJECT WITHDRAW
+   REJECT WITHDRAWAL
 ========================= */
-async function rejectWithdraw(id) {
+async function rejectWithdrawal(id) {
 
-  await supabase
-    .from("withdrawals")
-    .update({
-      status: "rejected"
-    })
-    .eq("id", id);
+  const { error } =
+    await supabase
+      .from("withdrawals")
+      .update({
+        status: 'rejected'
+      })
+      .eq("id", id);
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
 
   alert("Withdrawal Rejected");
 
@@ -281,49 +419,222 @@ async function rejectWithdraw(id) {
 }
 
 /* =========================
-   EXPORT CSV
+   LOAD SUPPORT TICKETS
 ========================= */
-async function exportWithdrawals() {
+async function loadTickets() {
 
-  const { data } = await supabase
-    .from("withdrawals")
-    .select(`
-      *,
-      users (
-        phone,
-        bank_name,
-        bank_account
-      )
-    `)
-    .eq("status", "pending");
+  const { data } =
+    await supabase
+      .from("tickets")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
+
+  document.getElementById("ticketsTable")
+    .innerHTML =
+      data.map(t => `
+        <tr>
+
+          <td>${t.id}</td>
+
+          <td>${t.user_id}</td>
+
+          <td>${t.message}</td>
+
+          <td>${t.status || 'Pending'}</td>
+
+        </tr>
+      `).join('');
+}
+
+/* =========================
+   LOAD NEWS
+========================= */
+async function loadNews() {
+
+  const { data } =
+    await supabase
+      .from("news")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
+
+  document.getElementById("newsTable")
+    .innerHTML =
+      data.map(n => `
+        <tr>
+
+          <td>${n.title}</td>
+
+          <td>${n.content}</td>
+
+        </tr>
+      `).join('');
+}
+
+/* =========================
+   ADD NEWS
+========================= */
+async function addNews() {
+
+  const title =
+    document.getElementById("newsTitle").value;
+
+  const content =
+    document.getElementById("newsContent").value;
+
+  if (!title || !content) {
+
+    alert("Fill all fields");
+
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from("news")
+      .insert([{
+        title,
+        content
+      }]);
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+  alert("News Added");
+
+  document.getElementById("newsTitle").value = "";
+  document.getElementById("newsContent").value = "";
+
+  loadNews();
+}
+
+/* =========================
+   LOAD VIP PLANS
+========================= */
+async function loadVipPlans() {
+
+  const { data } =
+    await supabase
+      .from("vip_plans")
+      .select("*")
+      .order("price", {
+        ascending: true
+      });
+
+  document.getElementById("vipPlansTable")
+    .innerHTML =
+      data.map(v => `
+        <tr>
+
+          <td>${v.id}</td>
+
+          <td>${v.name}</td>
+
+          <td>${v.price}</td>
+
+          <td>${v.daily_rate}%</td>
+
+          <td>
+
+            <input
+              type="number"
+              id="vip_${v.id}"
+              placeholder="New Price"
+            />
+
+            <button onclick="
+              updateVipPrice(${v.id})
+            ">
+              Update
+            </button>
+
+          </td>
+
+        </tr>
+      `).join('');
+}
+
+/* =========================
+   UPDATE VIP PRICE
+========================= */
+async function updateVipPrice(vipId) {
+
+  const price =
+    Number(
+      document.getElementById(
+        `vip_${vipId}`
+      ).value
+    );
+
+  if (!price || price <= 0) {
+
+    alert("Invalid Price");
+
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from("vip_plans")
+      .update({
+        price
+      })
+      .eq("id", vipId);
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+  alert("VIP Price Updated");
+
+  loadVipPlans();
+}
+
+/* =========================
+   EXPORT WITHDRAWALS
+========================= */
+function exportWithdrawals() {
+
+  const table =
+    document.getElementById(
+      "withdrawalsTable"
+    );
 
   let csv =
-    "Phone,Bank,Account,Amount,Net Amount\n";
+    "ID,User ID,Amount,Account,Status\n";
 
-  data.forEach(w => {
+  for (let row of table.rows) {
 
-    csv += `${w.users.phone},`;
+    csv += Array.from(row.cells)
+      .slice(0, 5)
+      .map(cell => cell.innerText)
+      .join(",");
 
-    csv += `${w.users.bank_name},`;
-
-    csv += `${w.users.bank_account},`;
-
-    csv += `${w.amount},`;
-
-    csv += `${w.net_amount}\n`;
-
-  });
+    csv += "\n";
+  }
 
   const blob =
     new Blob([csv], {
-      type: "text/csv"
+      type: 'text/csv'
     });
+
+  const url =
+    URL.createObjectURL(blob);
 
   const a =
     document.createElement("a");
 
-  a.href =
-    URL.createObjectURL(blob);
+  a.href = url;
 
   a.download =
     "withdrawals.csv";
@@ -332,132 +643,16 @@ async function exportWithdrawals() {
 }
 
 /* =========================
-   POST NEWS
+   LOGOUT
 ========================= */
-async function postNews() {
+function logout() {
 
-  const title =
-    document.getElementById("newsTitle").value;
+  localStorage.removeItem("adminEmail");
 
-  const content =
-    document.getElementById("newsContent").value;
-
-  await supabase
-    .from("news")
-    .insert([{
-      title,
-      content
-    }]);
-
-  alert("News Published");
-
-  loadNews();
+  location.href = "index.html";
 }
 
 /* =========================
-   LOAD NEWS
+   START
 ========================= */
-async function loadNews() {
-
-  const { data } = await supabase
-    .from("news")
-    .select("*")
-    .order("created_at", {
-      ascending: false
-    });
-
-  console.log(data);
-}
-
-/* =========================
-   LOAD SUPPORT TICKETS
-========================= */
-async function loadTickets() {
-
-  const { data } = await supabase
-    .from("tickets")
-    .select("*")
-    .order("created_at", {
-      ascending: false
-    });
-
-  document.getElementById("ticketList").innerHTML =
-    data.map(t => `
-      <div class="item">
-
-        <p>User ID: ${t.user_id}</p>
-
-        <p>${t.message}</p>
-
-      </div>
-    `).join('');
-}
-
-/* =========================
-   ADD BALANCE
-========================= */
-async function addBalance() {
-
-  const userId =
-    document.getElementById("targetUserId").value;
-
-  const amount =
-    Number(
-      document.getElementById("balanceAmount").value
-    );
-
-  await supabase.rpc(
-    "add_user_balance",
-    {
-      target_user_id: userId,
-      amount: amount
-    }
-  );
-
-  alert("Balance Added");
-}
-
-/* =========================
-   REMOVE BALANCE
-========================= */
-async function removeBalance() {
-
-  const userId =
-    document.getElementById("targetUserId").value;
-
-  const amount =
-    Number(
-      document.getElementById("balanceAmount").value
-    );
-
-  await supabase.rpc(
-    "remove_user_balance",
-    {
-      target_user_id: userId,
-      amount: amount
-    }
-  );
-
-  alert("Balance Removed");
-}
-
-/* =========================
-   UPDATE VIP PRICE
-========================= */
-async function updateVipPrice() {
-
-  const vip =
-    document.getElementById("vipName").value;
-
-  const price =
-    document.getElementById("vipPrice").value;
-
-  await supabase
-    .from("vip_plans")
-    .update({
-      price: price
-    })
-    .eq("name", vip);
-
-  alert("VIP Price Updated");
-            }
+checkAdmin();

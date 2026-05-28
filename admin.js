@@ -58,6 +58,122 @@ loadPasswordResets();
 }
 
 /* =========================
+   LOAD ANALYTICS
+========================= */
+
+async function loadAnalytics() {
+
+  /* TOTAL USERS */
+
+  const {
+    count: usersCount
+  } =
+    await supabase
+      .from("users")
+      .select(
+        "*",
+        {
+          count: "exact",
+          head: true
+        }
+      );
+
+  document.getElementById(
+    "totalUsers"
+  ).innerText =
+    usersCount || 0;
+
+  /* TOTAL DEPOSITS */
+
+  const {
+    data: deposits
+  } =
+    await supabase
+      .from("deposits")
+      .select("amount");
+
+  const totalDeposits =
+    deposits?.reduce(
+      (sum, d) =>
+        sum + Number(d.amount),
+      0
+    ) || 0;
+
+  document.getElementById(
+    "totalDeposits"
+  ).innerText =
+    totalDeposits;
+
+  /* TOTAL WITHDRAWALS */
+
+  const {
+    data: withdrawals
+  } =
+    await supabase
+      .from("withdrawals")
+      .select("amount");
+
+  const totalWithdrawals =
+    withdrawals?.reduce(
+      (sum, w) =>
+        sum + Number(w.amount),
+      0
+    ) || 0;
+
+  document.getElementById(
+    "totalWithdrawals"
+  ).innerText =
+    totalWithdrawals;
+
+  /* PENDING DEPOSITS */
+
+  const {
+    count: pendingDep
+  } =
+    await supabase
+      .from("deposits")
+      .select(
+        "*",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .eq(
+        "status",
+        "pending"
+      );
+
+  document.getElementById(
+    "pendingDeposits"
+  ).innerText =
+    pendingDep || 0;
+
+  /* PENDING WITHDRAWALS */
+
+  const {
+    count: pendingWith
+  } =
+    await supabase
+      .from("withdrawals")
+      .select(
+        "*",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .eq(
+        "status",
+        "pending"
+      );
+
+  document.getElementById(
+    "pendingWithdrawals"
+  ).innerText =
+    pendingWith || 0;
+}
+/* =========================
    LOAD USERS
 ========================= */
 async function loadUsers() {

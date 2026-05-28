@@ -320,6 +320,111 @@ async function loadTickets() {
         ascending: false
       });
 
+/* =========================
+   LOAD PASSWORD RESETS
+========================= */
+
+async function loadPasswordResets() {
+
+  const { data } =
+    await supabase
+      .from("tickets")
+      .select("*")
+      .eq(
+        "category",
+        "password_reset"
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
+
+  document.getElementById(
+    "passwordResetTable"
+  ).innerHTML =
+    data.map(t => `
+      <tr>
+
+        <td>${t.id}</td>
+
+        <td>${t.user_id}</td>
+
+        <td>${t.message}</td>
+
+        <td>
+
+          <textarea
+            id="reply-${t.id}"
+            placeholder="Admin reply"
+          >${t.admin_reply || ''}</textarea>
+
+        </td>
+
+        <td>
+
+          <button onclick="
+            replyPasswordReset(
+              ${t.id}
+            )
+          ">
+            Send Reply
+          </button>
+
+        </td>
+
+      </tr>
+    `).join('');
+}
+
+/* =========================
+   REPLY PASSWORD RESET
+========================= */
+
+async function replyPasswordReset(
+  ticketId
+) {
+
+  const reply =
+    document.getElementById(
+      `reply-${ticketId}`
+    ).value;
+
+  if (!reply) {
+
+    alert("Enter reply");
+
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from("tickets")
+      .update({
+
+        admin_reply: reply,
+
+        status: 'answered',
+
+        replied_at:
+          new Date()
+
+      })
+      .eq("id", ticketId);
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+  alert("Reply sent");
+
+  loadPasswordResets();
+}
+
   document.getElementById("ticketsTable")
     .innerHTML =
       data.map(t => `

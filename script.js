@@ -506,6 +506,78 @@ async function submitTicket() {
     return;
   }
 
+
+/* =========================
+   PASSWORD RESET REQUEST
+========================= */
+
+async function submitPasswordReset() {
+
+  const userId =
+    localStorage.getItem("userId");
+
+  const phone =
+    document.getElementById(
+      "resetPhone"
+    ).value;
+
+  const reason =
+    document.getElementById(
+      "resetReason"
+    ).value;
+
+  if (!phone || !reason) {
+
+    alert("Fill all fields");
+
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from("tickets")
+      .insert([{
+
+        user_id: userId,
+
+        category:
+          'password_reset',
+
+        message:
+          `
+Phone:
+${phone}
+
+Problem:
+${reason}
+          `,
+
+        status:
+          'pending'
+
+      }]);
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+  alert(
+    "Password reset request sent"
+  );
+
+  document.getElementById(
+    "resetPhone"
+  ).value = "";
+
+  document.getElementById(
+    "resetReason"
+  ).value = "";
+
+  loadTickets();
+}
   await supabase
     .from("tickets")
     .insert([{

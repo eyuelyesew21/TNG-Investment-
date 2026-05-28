@@ -53,6 +53,8 @@ async function loadDashboard() {
   loadNews();
 
   loadVipPlans();
+
+loadPasswordResets();
 }
 
 /* =========================

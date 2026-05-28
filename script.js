@@ -1,3 +1,10 @@
+const userId = localStorage.getItem("userId");
+
+if (!userId) {
+  alert("Please login first");
+  window.location.href = "index.html";
+}
+
 const supabase = window.supabase.createClient(
   "https://dknksfcesarrvyfufdti.supabase.co",
   "YOUR_ANON_KEY"

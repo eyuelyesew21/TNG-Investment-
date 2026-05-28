@@ -34,6 +34,18 @@ async function checkAdmin() {
     return;
   }
 
+async function loadUnreadTickets() {
+
+  const { count } =
+    await supabase
+      .from("support_tickets")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pending");
+
+  document.getElementById("unreadTickets").innerText =
+    count || 0;
+}
+
   loadDashboard();
 }
 

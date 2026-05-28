@@ -10,24 +10,34 @@ const supabase = window.supabase.createClient(
 async function registerUser() {
 
   const phone = document.getElementById("phone").value;
+
   const password = document.getElementById("password").value;
-  const confirmPassword = document.getElementById("confirmPassword").value;
+
+  const confirmPassword =
+    document.getElementById("confirmPassword").value;
 
   const phoneRegex = /^(09|07)\d{8}$/;
+
   const passwordRegex = /^\d{6}$/;
 
   if (!phoneRegex.test(phone)) {
+
     alert("Invalid phone number");
+
     return;
   }
 
   if (!passwordRegex.test(password)) {
+
     alert("Password must be 6 digits");
+
     return;
   }
 
   if (password !== confirmPassword) {
+
     alert("Passwords do not match");
+
     return;
   }
 
@@ -43,9 +53,13 @@ async function registerUser() {
   if (error) {
 
     if (error.message.includes("duplicate")) {
+
       alert("Phone number already registered");
+
     } else {
+
       alert(error.message);
+
     }
 
     return;
@@ -58,8 +72,11 @@ async function registerUser() {
 
 async function loginUser() {
 
-  const phone = document.getElementById("loginPhone").value;
-  const password = document.getElementById("loginPassword").value;
+  const phone =
+    document.getElementById("loginPhone").value;
+
+  const password =
+    document.getElementById("loginPassword").value;
 
   const { data, error } = await supabase
     .from("users")
@@ -75,9 +92,49 @@ async function loginUser() {
     return;
   }
 
-  localStorage.setItem("tngUser", JSON.stringify(data));
+  localStorage.setItem(
+    "tngUser",
+    JSON.stringify(data)
+  );
 
   alert("Login Successful");
 
   window.location.href = "dashboard.html";
+}
+
+const currentUser = JSON.parse(
+  localStorage.getItem("tngUser")
+);
+
+if (currentUser) {
+
+  const phoneElement =
+    document.getElementById("userPhone");
+
+  const balanceElement =
+    document.getElementById("userBalance");
+
+  if (phoneElement) {
+
+    phoneElement.innerText =
+      currentUser.phone;
+
+  }
+
+  if (balanceElement) {
+
+    balanceElement.innerText =
+      currentUser.balance;
+
+  }
+
+}
+
+function logoutUser() {
+
+  localStorage.removeItem("tngUser");
+
+  alert("Logged Out");
+
+  window.location.href = "login.html";
 }

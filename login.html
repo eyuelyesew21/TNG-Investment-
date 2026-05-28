@@ -11,10 +11,26 @@
 <div class="login-box">
   <h2>TNG Login</h2>
 
-  <input type="email" placeholder="Enter Email">
-  <input type="password" placeholder="Enter Password">
+  <input 
+    type="tel"
+    id="loginPhone"
+    placeholder="09xxxxxxxx or 07xxxxxxxx"
+    maxlength="10"
+    required
+  >
 
-  <button>Login</button>
+  <input 
+    type="password"
+    id="loginPassword"
+    placeholder="6 Digit Password"
+    maxlength="6"
+    pattern="[0-9]{6}"
+    required
+  >
+
+  <button onclick="loginUser()">
+    Login
+  </button>
 
   <p>
     Don't have account?

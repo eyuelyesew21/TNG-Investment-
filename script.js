@@ -72,6 +72,8 @@ async function registerUser() {
 
         password: password,
 
+        balance: 200,
+
         referral_code: myReferralCode,
 
         referred_by: referralCodeInput || null

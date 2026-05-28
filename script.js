@@ -93,6 +93,7 @@ async function loadDashboard() {
   loadTickets();
 
 loadNotifications();
+
 }
 
 /* =========================

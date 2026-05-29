@@ -8,88 +8,123 @@ const supabase = window.supabase.createClient(
 ========================= */
 async function registerUser() {
 
-  const phone =
-    document.getElementById(
-      "registerPhone"
-    ).value;
+  try {
 
-  const password =
-    document.getElementById(
-      "registerPassword"
-    ).value;
+    const phone =
+      document.getElementById(
+        "registerPhone"
+      ).value.trim();
 
-  const confirmPassword =
-    document.getElementById(
-      "confirmPassword"
-    ).value;
+    const password =
+      document.getElementById(
+        "registerPassword"
+      ).value.trim();
 
-  const referralCode =
-    document.getElementById(
-      "referralCode"
-    ).value;
+    const confirmPassword =
+      document.getElementById(
+        "confirmPassword"
+      ).value.trim();
 
-  if (
-    !phone ||
-    !password ||
-    !confirmPassword
-  ) {
+    const referralCode =
+      document.getElementById(
+        "referralCode"
+      ).value.trim();
 
-    alert("Fill all fields");
+    if (
+      !phone ||
+      !password ||
+      !confirmPassword
+    ) {
 
-    return;
-  }
+      alert("Fill all fields");
 
-  if (
-    password !== confirmPassword
-  ) {
+      return;
+    }
+
+    if (
+      password !== confirmPassword
+    ) {
+
+      alert(
+        "Passwords do not match"
+      );
+
+      return;
+    }
+
+    /* CHECK EXISTING USER */
+    const {
+      data: existingUser,
+      error: checkError
+    } =
+      await supabase
+        .from("users")
+        .select("*")
+        .eq("phone", phone)
+        .maybeSingle();
+
+    if (checkError) {
+
+      alert(
+        "Database error"
+      );
+
+      console.log(checkError);
+
+      return;
+    }
+
+    if (existingUser) {
+
+      alert(
+        "Phone already registered"
+      );
+
+      return;
+    }
+
+    /* REGISTER USER */
+    const {
+      data,
+      error
+    } =
+      await supabase
+        .from("users")
+        .insert([{
+          phone: phone,
+          password: password,
+          referral_code:
+            referralCode || null,
+          balance: 0
+        }]);
+
+    if (error) {
+
+      console.log(error);
+
+      alert(
+        "Registration failed: "
+        + error.message
+      );
+
+      return;
+    }
 
     alert(
-      "Passwords do not match"
+      "Registration successful"
     );
 
-    return;
-  }
+    window.location.href =
+      "login.html";
 
-  const { data: existingUser } =
-    await supabase
-      .from("users")
-      .select("*")
-      .eq("phone", phone)
-      .single();
+  } catch (err) {
 
-  if (existingUser) {
+    console.log(err);
 
     alert(
-      "Phone already registered"
+      "Unexpected error occurred"
     );
-
-    return;
   }
-
-  const { error } =
-    await supabase
-      .from("users")
-      .insert([{
-        phone: phone,
-        password: password,
-        referral_code:
-          referralCode || null,
-        balance: 0
-      }]);
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert(
-    "Registration successful"
-  );
-
-  window.location.href =
-    "login.html";
 }
 
 /* =========================
@@ -97,49 +132,65 @@ async function registerUser() {
 ========================= */
 async function loginUser() {
 
-  const phone =
-    document.getElementById(
-      "loginPhone"
-    ).value;
+  try {
 
-  const password =
-    document.getElementById(
-      "loginPassword"
-    ).value;
+    const phone =
+      document.getElementById(
+        "loginPhone"
+      ).value.trim();
 
-  if (!phone || !password) {
+    const password =
+      document.getElementById(
+        "loginPassword"
+      ).value.trim();
 
-    alert("Fill all fields");
+    if (!phone || !password) {
 
-    return;
-  }
+      alert("Fill all fields");
 
-  const { data: user, error } =
-    await supabase
-      .from("users")
-      .select("*")
-      .eq("phone", phone)
-      .eq("password", password)
-      .single();
+      return;
+    }
 
-  if (error || !user) {
+    const {
+      data: user,
+      error
+    } =
+      await supabase
+        .from("users")
+        .select("*")
+        .eq("phone", phone)
+        .eq("password", password)
+        .maybeSingle();
 
-    alert(
-      "Invalid login details"
+    if (error || !user) {
+
+      alert(
+        "Invalid login details"
+      );
+
+      return;
+    }
+
+    localStorage.setItem(
+      "userId",
+      user.id
     );
 
-    return;
+    alert(
+      "Login successful"
+    );
+
+    window.location.href =
+      "dashboard.html";
+
+  } catch (err) {
+
+    console.log(err);
+
+    alert(
+      "Login failed"
+    );
   }
-
-  localStorage.setItem(
-    "userId",
-    user.id
-  );
-
-  alert("Login successful");
-
-  window.location.href =
-    "dashboard.html";
 }
 
 /* =========================

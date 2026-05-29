@@ -2,69 +2,63 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>TNG Register</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-<div class="login-box">
+  <div class="login-box">
 
-  <h2>Create Account</h2>
+    <h2>Create Account</h2>
 
-  <input
-    type="tel"
-    id="registerPhone"
-    placeholder="09xxxxxxxx or 07xxxxxxxx"
-    maxlength="10"
-    required
-  >
+    <input
+      type="tel"
+      id="registerPhone"
+      placeholder="09xxxxxxxx or 07xxxxxxxx"
+      maxlength="10"
+    />
 
-  <input
-    type="password"
-    id="registerPassword"
-    placeholder="6 Digit Password"
-    maxlength="6"
-    pattern="[0-9]{6}"
-    required
-  >
+    <input
+      type="password"
+      id="registerPassword"
+      placeholder="6 Digit Password"
+      maxlength="6"
+    />
 
-  <input
-    type="password"
-    id="confirmPassword"
-    placeholder="Confirm Password"
-    maxlength="6"
-    pattern="[0-9]{6}"
-    required
-  >
+    <input
+      type="password"
+      id="confirmPassword"
+      placeholder="Confirm Password"
+      maxlength="6"
+    />
 
-  <input
-    type="text"
-    id="referralCode"
-    placeholder="Referral Code (Optional)"
-    maxlength="4"
-  >
+    <input
+      type="text"
+      id="referralCode"
+      placeholder="Referral Code (Optional)"
+      maxlength="10"
+    />
 
-  <button onclick="registerUser()">
-    Register
-  </button>
+    <button onclick="registerUser()">
+      Register
+    </button>
 
-  <p>
-    Already have account?
-    <a href="login.html">Login</a>
-  </p>
+    <p>
+      Already have account?
+      <a href="login.html">Login</a>
+    </p>
 
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 
 </body>
+
 </html>

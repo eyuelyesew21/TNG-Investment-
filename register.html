@@ -1,60 +1,29 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <title>TNG Register</title>
-
-  <style>
-    body{
-      background:#020d2b;
-      color:white;
-      font-family:Arial;
-      padding:20px;
-    }
-
-    input{
-      width:100%;
-      padding:15px;
-      margin:10px 0;
-      border:none;
-      border-radius:8px;
-      font-size:18px;
-    }
-
-    button{
-      width:100%;
-      padding:15px;
-      background:#22c55e;
-      border:none;
-      color:white;
-      font-size:20px;
-      border-radius:8px;
-    }
-  </style>
 </head>
 
 <body>
 
 <h1>Register</h1>
 
-<input id="phone" placeholder="Phone Number">
+<input id="phone" placeholder="Phone">
 
-<input
-  id="password"
-  type="password"
-  placeholder="Password"
->
+<input id="password" type="password" placeholder="Password">
 
-<button onclick="testRegister()">
+<button onclick="registerUser()">
 Register
 </button>
 
 <script>
-function testRegister(){
 
-  alert("BUTTON WORKING");
+function registerUser() {
+
+  alert("REGISTER WORKING");
 
 }
+
 </script>
 
 </body>

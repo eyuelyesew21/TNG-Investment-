@@ -205,3 +205,5 @@ function logoutUser() {
   window.location.href =
     "login.html";
 }
+
+alert("SCRIPT CONNECTED");

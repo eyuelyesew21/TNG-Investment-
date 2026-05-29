@@ -1,998 +1,32 @@
-const userId = localStorage.getItem("userId");
-
-if (!userId) {
-  alert("Please login first");
-  window.location.href = "index.html";
-}
-
 const supabase = window.supabase.createClient(
   "https://dknksfcesarrvyfufdti.supabase.co",
-  "YOUR_ANON_KEY"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrbmtzZmNlc2FycnZ5ZnVmZHRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTI4ODMsImV4cCI6MjA5NTQ2ODg4M30.bemPqKzMlUrK7C9bddrAuspC-JtYIfciCxi7eECQEwk"
 );
 
 /* =========================
-   LOAD DASHBOARD
+   REGISTER USER
 ========================= */
-async function loadDashboard() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  if (!userId) {
-
-    location.href = "index.html";
-
-    return;
-  }
-
-  /* USER INFO */
-  const { data: user } =
-    await supabase
-      .from("users")
-      .select("*")
-      .eq("id", userId)
-      .single();
-
-  document.getElementById("balance")
-    .innerText =
-      user.balance || 0;
-
-  document.getElementById("referralCode")
-    .innerText =
-      user.referral_code || "";
-
-  /* ACTIVE VIP */
-  const { data: vip } =
-    await supabase
-      .from("user_vip")
-      .select(`
-        *,
-        vip_plans (
-          name,
-          price,
-          daily_rate
-        )
-      `)
-      .eq("user_id", userId)
-      .eq("status", "active")
-      .single();
-
-  if (vip) {
-
-    document.getElementById("currentVip")
-      .innerText =
-        vip.vip_plans.name;
-
-    document.getElementById("vipExpire")
-      .innerText =
-        new Date(
-          vip.expires_at
-        ).toLocaleDateString();
-
-  } else {
-
-    document.getElementById("currentVip")
-      .innerText = "No VIP";
-
-    document.getElementById("vipExpire")
-      .innerText = "-";
-  }
-
-  loadVipPlans();
-
-  loadIncomeHistory();
-
-  loadWithdrawals();
-
-  loadDeposits();
-
-  loadNews();
-
-  loadChats();
-
-  loadTickets();
-
-loadNotifications();
-
-}
-
-/* =========================
-   LOAD VIP PLANS
-========================= */
-async function loadVipPlans() {
-
-  const { data } =
-    await supabase
-      .from("vip_plans")
-      .select("*")
-      .order("price", {
-        ascending: true
-      });
-
-  document.getElementById("vipPlans")
-    .innerHTML =
-      data.map(v => `
-        <div class="vip-card">
-
-          <h3>${v.name}</h3>
-
-          <p>Price: ${v.price} ETB</p>
-
-          <p>Daily Return:
-            ${v.daily_rate}%
-          </p>
-
-          <p>VIP Life:
-            365 Days
-          </p>
-
-          <button onclick="
-            buyVip(${v.id})
-          ">
-            Buy VIP
-          </button>
-
-        </div>
-      `).join('');
-}
-
-/* =========================
-   BUY VIP
-========================= */
-async function buyVip(vipId) {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const { error } =
-    await supabase.rpc(
-      "secure_buy_vip",
-      {
-        p_user_id: userId,
-        p_vip_id: vipId
-      }
-    );
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert("VIP Purchased");
-
-  loadDashboard();
-}
-
-/* =========================
-   CLAIM DAILY INCOME
-========================= */
-async function claimDailyIncome() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const { error } =
-    await supabase.rpc(
-      "claim_daily_income",
-      {
-        p_user_id: userId
-      }
-    );
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert("Income Claimed");
-
-  loadDashboard();
-}
-
-/* =========================
-   LOAD INCOME HISTORY
-========================= */
-async function loadIncomeHistory() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const { data } =
-    await supabase
-      .from("vip_income_history")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", {
-        ascending: false
-      });
-
-  document.getElementById("incomeHistory")
-    .innerHTML =
-      data.map(i => `
-        <div class="income-item">
-
-          <p>
-            Income:
-            ${i.amount} ETB
-          </p>
-
-          <p>
-            ${new Date(
-              i.created_at
-            ).toLocaleString()}
-          </p>
-
-        </div>
-      `).join('');
-}
-
-/* =========================
-   SUBMIT DEPOSIT
-========================= */
-async function submitDeposit() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const amount =
-    document.getElementById(
-      "depositAmount"
-    ).value;
-
-  const method =
-    document.getElementById(
-      "depositMethod"
-    ).value;
-
-  const transactionId =
-    document.getElementById(
-      "transactionId"
-    ).value;
-
-  const receipt =
-    document.getElementById(
-      "receipt"
-    ).value;
-
-  const { error } =
-    await supabase
-      .from("deposits")
-      .insert([{
-        user_id: userId,
-        amount,
-        method,
-        transaction_id: transactionId,
-        receipt,
-        status: 'pending'
-      }]);
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert(
-    "Deposit Submitted Successfully"
-  );
-
-  loadDeposits();
-}
-
-/* =========================
-   LOAD DEPOSITS
-========================= */
-async function loadDeposits() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const { data } =
-    await supabase
-      .from("deposits")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", {
-        ascending: false
-      });
-
-  document.getElementById("depositHistory")
-    .innerHTML =
-      data.map(dep => `
-        <div class="deposit-item">
-
-          <p>
-            Amount:
-            ${dep.amount}
-          </p>
-
-          <p>
-            Status:
-            ${dep.status}
-          </p>
-
-        </div>
-      `).join('');
-}
-
-/* =========================
-   SUBMIT WITHDRAWAL
-========================= */
-async function submitWithdrawal() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const amount =
-    Number(
-      document.getElementById(
-        "withdrawAmount"
-      ).value
-    );
-
-  const account =
-    document.getElementById(
-      "withdrawAccount"
-    ).value;
-
-  if (!amount || !account) {
-
-    alert("Fill all fields");
-
-    return;
-  }
-
-  const { error } =
-    await supabase.rpc(
-      "secure_withdraw",
-      {
-        p_user_id: userId,
-        p_amount: amount,
-        p_account: account
-      }
-    );
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert(
-    "Withdrawal Request Submitted"
-  );
-
-  loadDashboard();
-}
-
-/* =========================
-   LOAD WITHDRAWALS
-========================= */
-async function loadWithdrawals() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const { data } =
-
-/* =========================
-   CHECK PENDING WITHDRAWAL
-========================= */
-
-const { data: pending } =
-  await supabase
-    .from("withdrawals")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("status", "pending");
-
-if (
-  pending &&
-  pending.length > 0
-) {
-
-  alert(
-    "You already have a pending withdrawal"
-  );
-
-  return;
-}
-
-/* =========================
-   BALANCE CHECK
-========================= */
-
-if (
-  withdrawAmount > user.balance
-) {
-
-  alert(
-    "Insufficient balance"
-  );
-
-  return;
-}
-
-/* =========================
-   MINIMUM WITHDRAWAL
-========================= */
-
-if (
-  withdrawAmount < 300
-) {
-
-  alert(
-    "Minimum withdrawal is 300 ETB"
-  );
-
-  return;
-}
-
-/* =========================
-   WITHDRAWAL COOLDOWN
-========================= */
-
-const { data: recent } =
-  await supabase
-    .from("withdrawals")
-    .select("*")
-    .eq("user_id", userId)
-    .order(
-      "created_at",
-      {
-        ascending: false
-      }
-    )
-    .limit(1);
-
-if (
-  recent &&
-  recent.length > 0
-) {
-
-  const lastTime =
-    new Date(
-      recent[0].created_at
-    ).getTime();
-
-  const now =
-    new Date().getTime();
-
-  const diffHours =
-    (now - lastTime)
-    / 1000 / 60 / 60;
-
-  if (diffHours < 24) {
-
-    alert(
-      "You can only withdraw once every 24 hours"
-    );
-
-    return;
-  }
-}
-    await supabase
-      .from("withdrawals")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", {
-        ascending: false
-      });
-
-  document.getElementById("withdrawHistory")
-    .innerHTML =
-      data.map(w => `
-        <div class="withdraw-item">
-
-          <p>
-            Amount:
-            ${w.amount}
-          </p>
-
-          <p>
-            Fee:
-            ${w.fee}
-          </p>
-
-          <p>
-            Final:
-            ${w.final_amount}
-          </p>
-
-          <p>
-            Status:
-            ${w.status}
-          </p>
-
-        </div>
-      `).join('');
-}
-
-/* =========================
-   LOAD NEWS
-========================= */
-async function loadNews() {
-
-  const { data } =
-    await supabase
-      .from("news")
-      .select("*")
-      .order("created_at", {
-        ascending: false
-      });
-
-  document.getElementById("newsList")
-    .innerHTML =
-      data.map(n => `
-        <div class="news-item">
-
-          <h3>${n.title}</h3>
-
-          <p>${n.content}</p>
-
-        </div>
-      `).join('');
-}
-
-/* =========================
-   LOAD CHATS
-========================= */
-async function loadChats() {
-
-  const { data } =
-    await supabase
-      .from("chats")
-      .select("*")
-      .order("created_at", {
-        ascending: false
-      });
-
-  document.getElementById("chatList")
-    .innerHTML =
-      data.map(c => `
-        <div class="chat-item">
-
-          <p>${c.message}</p>
-
-        </div>
-      `).join('');
-}
-
-/* =========================
-   SEND CHAT
-========================= */
-async function sendChat() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const message =
-    document.getElementById(
-      "chatMessage"
-    ).value;
-
-  if (!message) return;
-
-  await supabase
-    .from("chats")
-    .insert([{
-      user_id: userId,
-      message
-    }]);
-
-  document.getElementById(
-    "chatMessage"
-  ).value = "";
-
-  loadChats();
-}
-
-/* =========================
-   SUBMIT SUPPORT TICKET
-========================= */
-async function submitTicket() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const message =
-    document.getElementById(
-      "ticketMessage"
-    ).value;
-
-  if (!message) {
-
-    alert("Enter Message");
-
-    return;
-  }
-
-
-/* =========================
-   PASSWORD RESET REQUEST
-========================= */
-
-async function submitPasswordReset() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const phone =
-    document.getElementById(
-      "resetPhone"
-    ).value;
-
-  const reason =
-    document.getElementById(
-      "resetReason"
-    ).value;
-
-  if (!phone || !reason) {
-
-    alert("Fill all fields");
-
-    return;
-  }
-
-  const { error } =
-    await supabase
-      .from("tickets")
-      .insert([{
-
-        user_id: userId,
-
-        category:
-          'password_reset',
-
-        message:
-          `
-Phone:
-${phone}
-
-Problem:
-${reason}
-          `,
-
-        status:
-          'pending'
-
-      }]);
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert(
-    "Password reset request sent"
-  );
-
-  document.getElementById(
-    "resetPhone"
-  ).value = "";
-
-  document.getElementById(
-    "resetReason"
-  ).value = "";
-
-  loadTickets();
-}
-  await supabase
-    .from("tickets")
-    .insert([{
-      user_id: userId,
-      message,
-      status: 'pending'
-    }]);
-
-  alert("Ticket Submitted");
-
-  document.getElementById(
-    "ticketMessage"
-  ).value = "";
-
-  loadTickets();
-}
-
-/* =========================
-   LOAD TICKETS
-========================= */
-async function loadTickets() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const { data } =
-    await supabase
-      .from("tickets")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", {
-        ascending: false
-      });
-
-/* =========================
-   LOAD NOTIFICATIONS
-========================= */
-
-async function loadNotifications() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const { data } =
-    await supabase
-      .from("tickets")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("status", "answered")
-      .eq("is_read", false)
-      .order("replied_at", {
-        ascending: false
-      });
-
-  document.getElementById(
-    "notifications"
-  ).innerHTML =
-    data.map(n => `
-      <div class="notification-box">
-
-        <h4>
-          Admin Reply
-        </h4>
-
-        <p>
-          ${n.admin_reply}
-        </p>
-
-        <button onclick="
-          markNotificationRead(
-            ${n.id}
-          )
-        ">
-          Mark as Read
-        </button>
-
-      </div>
-    `).join('');
-}
-
-/* =========================
-   MARK AS READ
-========================= */
-
-async function markNotificationRead(
-  id
-) {
-
-  await supabase
-    .from("tickets")
-    .update({
-      is_read: true
-    })
-    .eq("id", id);
-
-  loadNotifications();
-}
-
-  document.getElementById("ticketList")
-    .innerHTML =
-      data.map(t => `
-        <div class="ticket-item">
-
-          <p>${t.message}</p>
-
-          <p>Status:
-            ${t.status}
-          </p>
-
-        </div>
-      `).join('');
-}
-
-/* =========================
-   LOGOUT
-========================= */
-function logout() {
-
-  localStorage.removeItem("userId");
-
-  location.href = "index.html";
-}
-
-/* =========================
-   START
-========================= */
-loadDashboard();
-
-/* =========================
-   LIVE REFRESH
-========================= */
-
-setInterval(() => {
-
-  loadNotifications();
-
-  loadTickets();
-
-}, 10000);
-
-/* =========================
-   AUTO LOGOUT SECURITY
-========================= */
-
-let inactivityTimer;
-
-/* RESET TIMER */
-function resetInactivityTimer() {
-
-  clearTimeout(inactivityTimer);
-
-  inactivityTimer =
-    setTimeout(() => {
-
-      alert(
-        "Session expired due to inactivity"
-      );
-
-      logout();
-
-    }, 15 * 60 * 1000);
-
-}
-
-/* USER ACTIVITY EVENTS */
-document.addEventListener(
-  "mousemove",
-  resetInactivityTimer
-);
-
-document.addEventListener(
-  "keydown",
-  resetInactivityTimer
-);
-
-document.addEventListener(
-  "click",
-  resetInactivityTimer
-);
-
-document.addEventListener(
-  "touchstart",
-  resetInactivityTimer
-);
-
-/* START TIMER */
-resetInactivityTimer();
-
-function validateReferral(phone, referralCode) {
-
-  if (!referralCode) return true;
-
-  if (phone === referralCode) {
-
-    alert("You cannot refer yourself");
-
-    return false;
-  }
-
-  return true;
-}
-
-async function loginUser() {
-
-  const phone =
-    document.getElementById("loginPhone").value;
-
-  const password =
-    document.getElementById("loginPassword").value;
-
-  const { data: user, error } =
-    await supabase
-      .from("users")
-      .select("*")
-      .eq("phone", phone)
-      .eq("password", password)
-      .single();
-
-  if (error || !user) {
-
-    alert("Invalid login details");
-
-    return;
-  }
-
-  localStorage.setItem("userId", user.id);
-
-  alert("Login successful");
-
-  location.href = "dashboard.html";
-}
-
-function logoutUser() {
-
-  localStorage.removeItem("userId");
-
-  alert("Logged out successfully");
-
-  window.location.href = "index.html";
-}
-
-async function sendResetRequest() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const { error } =
-    await supabase
-      .from("support_tickets")
-      .insert([
-        {
-          user_id: userId,
-          type: "password_reset",
-          message: "I want to reset my password",
-          status: "pending"
-        }
-      ]);
-
-  if (error) {
-    alert("Failed to send request");
-    return;
-  }
-
-  alert("Reset request sent to admin");
-}
-
-async function loadNotifications() {
-
-  const userId =
-    localStorage.getItem("userId");
-
-  const { data } =
-    await supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", userId)
-      .order("id", { ascending: false });
-
-  const container =
-    document.getElementById("notificationList");
-
-  container.innerHTML = "";
-
-  data?.forEach(n => {
-
-    const div =
-      document.createElement("div");
-
-    div.innerText =
-      n.message;
-
-    container.appendChild(div);
-  });
-}
-
 async function registerUser() {
 
   const phone =
-    document.getElementById("registerPhone").value;
+    document.getElementById(
+      "registerPhone"
+    ).value;
 
   const password =
-    document.getElementById("registerPassword").value;
+    document.getElementById(
+      "registerPassword"
+    ).value;
 
   const confirmPassword =
-    document.getElementById("confirmPassword").value;
+    document.getElementById(
+      "confirmPassword"
+    ).value;
 
-  const referral =
-    document.getElementById("referralCode").value;
+  const referralCode =
+    document.getElementById(
+      "referralCode"
+    ).value;
 
   if (
     !phone ||
@@ -1000,14 +34,18 @@ async function registerUser() {
     !confirmPassword
   ) {
 
-    alert("Please fill all fields");
+    alert("Fill all fields");
 
     return;
   }
 
-  if (password !== confirmPassword) {
+  if (
+    password !== confirmPassword
+  ) {
 
-    alert("Passwords do not match");
+    alert(
+      "Passwords do not match"
+    );
 
     return;
   }
@@ -1021,7 +59,9 @@ async function registerUser() {
 
   if (existingUser) {
 
-    alert("Phone already registered");
+    alert(
+      "Phone already registered"
+    );
 
     return;
   }
@@ -1029,23 +69,88 @@ async function registerUser() {
   const { error } =
     await supabase
       .from("users")
-      .insert([
-        {
-          phone: phone,
-          password: password,
-          referral_code: referral || null,
-          balance: 0
-        }
-      ]);
+      .insert([{
+        phone: phone,
+        password: password,
+        referral_code:
+          referralCode || null,
+        balance: 0
+      }]);
 
   if (error) {
 
-    alert("Registration failed");
+    alert(error.message);
 
     return;
   }
 
-  alert("Registration successful");
+  alert(
+    "Registration successful"
+  );
 
-  location.href = "login.html";
+  window.location.href =
+    "login.html";
+}
+
+/* =========================
+   LOGIN USER
+========================= */
+async function loginUser() {
+
+  const phone =
+    document.getElementById(
+      "loginPhone"
+    ).value;
+
+  const password =
+    document.getElementById(
+      "loginPassword"
+    ).value;
+
+  if (!phone || !password) {
+
+    alert("Fill all fields");
+
+    return;
+  }
+
+  const { data: user, error } =
+    await supabase
+      .from("users")
+      .select("*")
+      .eq("phone", phone)
+      .eq("password", password)
+      .single();
+
+  if (error || !user) {
+
+    alert(
+      "Invalid login details"
+    );
+
+    return;
+  }
+
+  localStorage.setItem(
+    "userId",
+    user.id
+  );
+
+  alert("Login successful");
+
+  window.location.href =
+    "dashboard.html";
+}
+
+/* =========================
+   LOGOUT
+========================= */
+function logoutUser() {
+
+  localStorage.removeItem(
+    "userId"
+  );
+
+  window.location.href =
+    "login.html";
 }

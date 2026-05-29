@@ -1,123 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>TNG Register</title>
 
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body{
+      background:#020d2b;
+      color:white;
+      font-family:Arial;
+      padding:20px;
+    }
+
+    input{
+      width:100%;
+      padding:15px;
+      margin:10px 0;
+      border:none;
+      border-radius:8px;
+      font-size:18px;
+    }
+
+    button{
+      width:100%;
+      padding:15px;
+      background:#22c55e;
+      border:none;
+      color:white;
+      font-size:20px;
+      border-radius:8px;
+    }
+  </style>
 </head>
 
 <body>
 
-  <div class="login-box">
+<h1>Register</h1>
 
-    <h2>Create Account</h2>
+<input id="phone" placeholder="Phone Number">
 
-    <input
-      type="tel"
-      id="registerPhone"
-      placeholder="09xxxxxxxx or 07xxxxxxxx"
-      maxlength="10"
-    />
+<input
+  id="password"
+  type="password"
+  placeholder="Password"
+>
 
-    <input
-      type="password"
-      id="registerPassword"
-      placeholder="6 Digit Password"
-      maxlength="6"
-    />
-
-    <input
-      type="password"
-      id="confirmPassword"
-      placeholder="Confirm Password"
-      maxlength="6"
-    />
-
-    <input
-      type="text"
-      id="referralCode"
-      placeholder="Referral Code (Optional)"
-      maxlength="10"
-    />
-
-    <button onclick="registerUser()">
-      Register
-    </button>
-
-    <p>
-      Already have account?
-      <a href="login.html">Login</a>
-    </p>
-
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<button onclick="testRegister()">
+Register
+</button>
 
 <script>
+function testRegister(){
 
-const supabase = window.supabase.createClient(
-  "https://dknksfcesarrvyfufdti.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrbmtzZmNlc2FycnZ5ZnVmZHRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTI4ODMsImV4cCI6MjA5NTQ2ODg4M30.bemPqKzMlUrK7C9bddrAuspC-JtYIfciCxi7eECQEwk"
-);
+  alert("BUTTON WORKING");
 
-async function registerUser() {
-
-  const phone =
-    document.getElementById("registerPhone").value;
-
-  const password =
-    document.getElementById("registerPassword").value;
-
-  const confirmPassword =
-    document.getElementById("confirmPassword").value;
-
-  if (!phone || !password || !confirmPassword) {
-
-    alert("Fill all fields");
-
-    return;
-  }
-
-  if (password !== confirmPassword) {
-
-    alert("Passwords do not match");
-
-    return;
-  }
-
-  const { error } =
-    await supabase
-      .from("users")
-      .insert([
-        {
-          phone: phone,
-          password: password,
-          balance: 0
-        }
-      ]);
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert("Registration successful");
-
-  window.location.href = "login.html";
 }
-
-</script>
-
-<script>
-alert("JS WORKING");
 </script>
 
 </body>
-
 </html>

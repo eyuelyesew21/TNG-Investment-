@@ -979,3 +979,73 @@ async function loadNotifications() {
     container.appendChild(div);
   });
 }
+
+async function registerUser() {
+
+  const phone =
+    document.getElementById("registerPhone").value;
+
+  const password =
+    document.getElementById("registerPassword").value;
+
+  const confirmPassword =
+    document.getElementById("confirmPassword").value;
+
+  const referral =
+    document.getElementById("referralCode").value;
+
+  if (
+    !phone ||
+    !password ||
+    !confirmPassword
+  ) {
+
+    alert("Please fill all fields");
+
+    return;
+  }
+
+  if (password !== confirmPassword) {
+
+    alert("Passwords do not match");
+
+    return;
+  }
+
+  const { data: existingUser } =
+    await supabase
+      .from("users")
+      .select("*")
+      .eq("phone", phone)
+      .single();
+
+  if (existingUser) {
+
+    alert("Phone already registered");
+
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from("users")
+      .insert([
+        {
+          phone: phone,
+          password: password,
+          referral_code: referral || null,
+          balance: 0
+        }
+      ]);
+
+  if (error) {
+
+    alert("Registration failed");
+
+    return;
+  }
+
+  alert("Registration successful");
+
+  location.href = "login.html";
+}
